@@ -112,6 +112,7 @@ Elementos del cuerpo:
 | `[firma: Texto]` | Recuadro de firma con borde discontinuo y el texto pequeño en gris abajo |
 | `{{VARIABLE}}` | Dato de la clínica (ver la tabla de variables) |
 | `[ref:N]` | Número del apartado N ("ver apartado [ref:3]"). Si se quitan apartados, sale el número nuevo; si se quita el apartado N, sale "[apartado quitado]" en amarillo y la web avisa (D64, D65). Los títulos `##` deben ir numerados 1, 2, 3… sin saltos |
+| `#nombre` | Nombre de campo del paciente, pegado a un hueco o una casilla: `[linea#dni]`, `[caja#riesgos]`, `[ ]#perro`. Solo minúsculas sin tilde, números y guiones, y el mismo en las dos versiones. Si la web trae el dato, sale escrito sobre el hueco (o la casilla marcada ☒); si no, el hueco en blanco (D69–D71) |
 
 ### Variables de la clínica
 

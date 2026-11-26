@@ -55,18 +55,32 @@ export type Tramo =
    * nuevo; si ese apartado se ha quitado, `quitado` = true y el generador lo resalta en amarillo.
    */
   | ({ tipo: 'referencia'; apartado: number; texto: string; quitado: boolean } & Formato)
-  /** [ ] → casilla ☐ */
-  | { tipo: 'casilla' }
-  /** [linea] → hueco que ocupa el resto de la línea o celda */
-  | { tipo: 'linea' }
-  /** [linea-corta] → hueco corto (unos 3 cm) */
-  | { tipo: 'linea-corta' }
-  /** [caja] → recuadro para escribir (unas 3 líneas) */
-  | { tipo: 'caja' }
-  /** [caja-grande] → recuadro para escribir (unas 5 líneas) */
-  | { tipo: 'caja-grande' }
+  /**
+   * [ ] → casilla ☐. Con nombre ("[ ]#perro") es un campo del paciente (T7): si `marcada` es
+   * true, el generador dibuja ☒.
+   */
+  | { tipo: 'casilla'; campo?: string; marcada?: boolean }
+  /**
+   * Huecos para escribir. Con nombre ("[linea#dni]") son campos del paciente (T7): si `valor`
+   * tiene texto, el generador lo escribe en el hueco; si no, sale el hueco en blanco.
+   *   [linea]       → hueco que ocupa el resto de la línea o celda
+   *   [linea-corta] → hueco corto (unos 3 cm)
+   *   [caja]        → recuadro para escribir (unas 3 líneas)
+   *   [caja-grande] → recuadro para escribir (unas 5 líneas)
+   */
+  | { tipo: TipoHueco; campo?: string; valor?: string }
   /** [firma: Texto] → recuadro de firma con el texto pequeño debajo */
   | { tipo: 'firma'; texto: string };
+
+/** Tipos de hueco para escribir. */
+export type TipoHueco = 'linea' | 'linea-corta' | 'caja' | 'caja-grande';
+
+/**
+ * Datos del paciente y del titular (T7), por el nombre de cada campo ("dni", "perro"…).
+ * Los huecos llevan texto y las casillas, true (marcada) o false. Lo que no se pone sale en blanco.
+ * Estos datos nunca se guardan en ningún sitio (D60).
+ */
+export type DatosPaciente = Record<string, string | boolean>;
 
 /** Una línea de texto: una lista de tramos seguidos. */
 export type Linea = Tramo[];

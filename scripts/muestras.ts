@@ -12,17 +12,22 @@
 //
 // Bloques elegibles (T6): muestras con algunos apartados quitados. Si un apartado que se queda
 // hace referencia a otro que se ha quitado, el aviso sale en pantalla con ⚠.
+//
+// Datos del paciente (T7): las 2 versiones del consentimiento con un paciente ficticio
+// (src/muestras/paciente-ejemplo.ts), para compararlas con las de los huecos en blanco.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { elegirApartados } from '../src/contenido/bloques.ts';
+import { rellenarCampos } from '../src/contenido/campos.ts';
 import { ErrorContenido, leerContenido } from '../src/contenido/lector.ts';
-import type { DatosClinica } from '../src/contenido/tipos.ts';
+import type { DatosClinica, DatosPaciente } from '../src/contenido/tipos.ts';
 import { DATOS_VACIOS } from '../src/contenido/variables.ts';
 import { COLOR_POR_DEFECTO } from '../src/generador/color.ts';
 import { ErrorGenerador, generarWord } from '../src/generador/generador.ts';
 import { detectarTipo, type Logo } from '../src/generador/imagen.ts';
 import { CLINICA_EJEMPLO } from '../src/muestras/clinica-ejemplo.ts';
+import { PACIENTE_EJEMPLO } from '../src/muestras/paciente-ejemplo.ts';
 
 const raiz = new URL('../', import.meta.url);
 const carpetaSalida = fileURLToPath(new URL('salida/', raiz));
@@ -56,6 +61,8 @@ interface Muestra {
   logo: Logo | null;
   /** Apartados que se quitan (número original en contenido/). Si no se pone, van todos. */
   quitar?: number[];
+  /** Datos del paciente. Si no se ponen, los huecos salen en blanco. */
+  paciente?: DatosPaciente;
 }
 
 const MUESTRAS: Muestra[] = [
@@ -101,6 +108,20 @@ const MUESTRAS: Muestra[] = [
     logo: logoEjemplo,
     quitar: [2, 4],
   },
+  {
+    contenido: 'consentimiento-neutra',
+    salida: 'consentimiento-neutra-con-paciente.docx',
+    datos: CLINICA_EJEMPLO,
+    logo: logoEjemplo,
+    paciente: PACIENTE_EJEMPLO,
+  },
+  {
+    contenido: 'consentimiento-calida',
+    salida: 'consentimiento-calida-con-paciente.docx',
+    datos: CLINICA_EJEMPLO,
+    logo: logoEjemplo,
+    paciente: PACIENTE_EJEMPLO,
+  },
 ];
 
 let hayErrores = false;
@@ -109,17 +130,23 @@ for (const m of MUESTRAS) {
   try {
     const texto = readFileSync(new URL(`contenido/${archivo}`, raiz), 'utf8');
     const leido = leerContenido(texto, m.datos, archivo);
-    const { documento, avisos } = elegirApartados(leido, m.quitar ?? []);
+    // Primero los datos del paciente (sus nombres se comprueban con el documento entero) y después los apartados.
+    const relleno = rellenarCampos(leido, m.paciente ?? {});
+    const { documento, avisos } = elegirApartados(relleno.documento, m.quitar ?? []);
     const bytes = await generarWord(documento, { datos: m.datos, color: COLOR_POR_DEFECTO, logo: m.logo });
     writeFileSync(`${carpetaSalida}${m.salida}`, bytes);
     const n = m.quitar?.length ?? 0;
     const quitados = n === 0 ? '' : `  · sin ${n === 1 ? 'el apartado' : 'los apartados'} ${m.quitar!.join(', ')}`;
-    console.log(`✔ salida/${m.salida}  (${Math.round(bytes.length / 1024)} KB)${quitados}`);
-    for (const a of avisos) console.log(`   ⚠ ${a.mensaje}`);
+    const conPaciente = m.paciente ? '  · con datos del paciente' : '';
+    console.log(`✔ salida/${m.salida}  (${Math.round(bytes.length / 1024)} KB)${quitados}${conPaciente}`);
+    for (const a of [...relleno.avisos, ...avisos]) console.log(`   ⚠ ${a.mensaje}`);
   } catch (e) {
     hayErrores = true;
     if (e instanceof ErrorContenido || e instanceof ErrorGenerador) console.error(`✘ ${m.salida}: ${e.message}`);
-    else throw e;
+    // El Word está abierto en Word o LibreOffice: Windows no deja sobrescribirlo.
+    else if ((e as NodeJS.ErrnoException).code === 'EBUSY' || (e as NodeJS.ErrnoException).code === 'EPERM') {
+      console.error(`✘ ${m.salida}: el archivo está abierto en otro programa. Ciérralo y vuelve a ejecutar.`);
+    } else throw e;
   }
 }
 

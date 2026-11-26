@@ -36,9 +36,9 @@ Convertir las muestras a PDF con LibreOffice, compararlas página a página con 
 Cada apartado (`## …`) de `contenido/` es un bloque que se puede quitar. El generador recibe la lista de bloques elegidos, se salta los demás y renumera los apartados. Las referencias a otros apartados ("ver apartado 3") pasan a ser marcas que el generador rellena con el número correcto (D58; solo cambia el número, no el texto). Si se quita un apartado al que otro hace referencia, el generador lo avisa (la web lo mostrará en la T8).
 **Comprobación:** `npm run muestras` genera además una muestra con varios bloques quitados; los números y las referencias salen bien, y la firma sigue con su texto. → Genera 11 Word: 3 nuevos con bloques quitados y el aviso ⚠ en pantalla (D63–D68).
 
-## T7 · Datos del paciente (opcionales) [ ]
+## T7 · Datos del paciente (opcionales) [x]
 Dar un nombre a cada hueco y casilla del consentimiento (titular, DNI, paciente, especie, peso, tipo de anestesia…). Si el campo tiene valor, el Word lleva el dato (y la casilla marcada ☒); si no, sale el hueco como ahora. Los datos del paciente no se guardan en ningún sitio (D60).
-**Comprobación:** `npm run muestras` genera además un consentimiento con datos de un paciente ficticio, y se ve bien junto al de los huecos en blanco.
+**Comprobación:** `npm run muestras` genera además un consentimiento con datos de un paciente ficticio, y se ve bien junto al de los huecos en blanco. → Genera 13 Word: 2 nuevos con el paciente ficticio «Luna» (D69–D73).
 
 ## T8 · Interfaz web [ ]
 Página en pasos: 1) la clínica (datos obligatorios, logo, color y versión; teléfonos con el WhatsApp opcional, D24), 2) los bloques, 3) el paciente (opcional), 4) la descarga en Word (ZIP con los 2 documentos y `LEEME.txt`). Aviso legal. Diseño sencillo, profesional, accesible y adaptado a móvil.

@@ -12,19 +12,19 @@ iniciales_en_pie: Iniciales del tutor/a
 Te entregamos este documento con antelación para que puedas leerlo con calma y preguntarnos todo lo que necesites antes de firmar. Con tu firma confirmas que has recibido esta información, que la has entendido y que autorizas el procedimiento.
 
 ::: tabla-datos
-- Tutor/a o responsable legal (nombre y apellidos) :: [linea]
-- DNI/NIE :: [linea]
-- Teléfono de contacto el día del procedimiento :: [linea]
-- Nombre del peludo :: [linea]
-- Especie / raza :: [ ] Perro [ ] Gato Raza: [linea]
-- Sexo / edad / peso actual (kg) :: Sexo: [linea-corta] Edad: [linea-corta] Peso (kg): [linea-corta]
-- Microchip :: [linea]
-- Procedimiento previsto :: [linea]
-- Tipo de anestesia prevista :: [ ] Sedación [ ] General inhalatoria [ ] General intravenosa (TIVA) [ ] Locorregional [ ] Combinada
-- Clasificación ASA asignada (ver apartado [ref:3]) :: [ ] I [ ] II [ ] III [ ] IV [ ] V · [ ] Urgencia (E)
-- Riesgos particulares de tu peludo :: [caja]
-- Veterinario/a responsable y n.º de colegiado/a :: [linea]
-- Fecha y hora de entrega de este documento :: [linea]
+- Tutor/a o responsable legal (nombre y apellidos) :: [linea#titular]
+- DNI/NIE :: [linea#dni]
+- Teléfono de contacto el día del procedimiento :: [linea#telefono]
+- Nombre del peludo :: [linea#paciente]
+- Especie / raza :: [ ]#perro Perro [ ]#gato Gato Raza: [linea#raza]
+- Sexo / edad / peso actual (kg) :: Sexo: [linea-corta#sexo] Edad: [linea-corta#edad] Peso (kg): [linea-corta#peso]
+- Microchip :: [linea#microchip]
+- Procedimiento previsto :: [linea#procedimiento]
+- Tipo de anestesia prevista :: [ ]#anestesia-sedacion Sedación [ ]#anestesia-inhalatoria General inhalatoria [ ]#anestesia-tiva General intravenosa (TIVA) [ ]#anestesia-locorregional Locorregional [ ]#anestesia-combinada Combinada
+- Clasificación ASA asignada (ver apartado [ref:3]) :: [ ]#asa-1 I [ ]#asa-2 II [ ]#asa-3 III [ ]#asa-4 IV [ ]#asa-5 V · [ ]#asa-urgencia Urgencia (E)
+- Riesgos particulares de tu peludo :: [caja#riesgos]
+- Veterinario/a responsable y n.º de colegiado/a :: [linea#veterinario]
+- Fecha y hora de entrega de este documento :: [linea#fecha-entrega]
 :::
 
 ::: nota
@@ -122,13 +122,13 @@ En la clínica aplicamos un protocolo anestésico basado en las guías internaci
 ::: tabla
 | Prueba | Recomendada | Acepto | Rechazo |
 |---|---|---|---|
-| Análisis de sangre (hemograma y bioquímica) | [ ] | [ ] | [ ] |
-| Electrocardiograma | [ ] | [ ] | [ ] |
-| Medición de la presión arterial | [ ] | [ ] | [ ] |
-| Radiografía de tórax | [ ] | [ ] | [ ] |
-| Ecocardiografía / valoración cardiológica | [ ] | [ ] | [ ] |
-| Pruebas de coagulación | [ ] | [ ] | [ ] |
-| Otras: [linea] | [ ] | [ ] | [ ] |
+| Análisis de sangre (hemograma y bioquímica) | [ ]#analitica-recomendada | [ ]#analitica-acepta | [ ]#analitica-rechaza |
+| Electrocardiograma | [ ]#ecg-recomendada | [ ]#ecg-acepta | [ ]#ecg-rechaza |
+| Medición de la presión arterial | [ ]#presion-recomendada | [ ]#presion-acepta | [ ]#presion-rechaza |
+| Radiografía de tórax | [ ]#rx-torax-recomendada | [ ]#rx-torax-acepta | [ ]#rx-torax-rechaza |
+| Ecocardiografía / valoración cardiológica | [ ]#cardio-recomendada | [ ]#cardio-acepta | [ ]#cardio-rechaza |
+| Pruebas de coagulación | [ ]#coagulacion-recomendada | [ ]#coagulacion-acepta | [ ]#coagulacion-rechaza |
+| Otras: [linea#otras-pruebas] | [ ]#otras-recomendada | [ ]#otras-acepta | [ ]#otras-rechaza |
 :::
 
 Si rechazas alguna prueba recomendada, declaras que te hemos explicado que sin ella puede no detectarse una enfermedad que aumente el riesgo, y que asumes ese mayor riesgo.
@@ -155,9 +155,9 @@ Parte de la seguridad de tu peludo depende de ti. No seguir estas indicaciones a
 - Cualquier síntoma de los últimos días: tos, vómitos, diarrea, decaimiento, desmayos, cansancio al ejercicio, cambios en lo que bebe u orina.
 - Si está en celo, puede estar gestante o ha sido tratado en otro centro.
 
-**¿Ha tenido alguna anestesia antes?** [ ] No [ ] Sí, sin incidencias [ ] Sí, con incidencias: [linea]
+**¿Ha tenido alguna anestesia antes?** [ ]#anestesia-previa-no No [ ]#anestesia-previa-sin-incidencias Sí, sin incidencias [ ]#anestesia-previa-con-incidencias Sí, con incidencias: [linea#anestesia-previa-incidencias]
 
-**¿Toma medicación actualmente?** [ ] No [ ] Sí: [linea]
+**¿Toma medicación actualmente?** [ ]#medicacion-no No [ ]#medicacion-si Sí: [linea#medicacion-cual]
 
 **Después del alta.** Durante las 24–48 horas siguientes sigue las instrucciones de alta que te entregaremos por escrito (vigilancia, alimentación, medicación, collar o protector, reposo). Si observas dificultad respiratoria, decaimiento intenso, mucosas pálidas, vómitos repetidos, sangrado o cualquier cambio que te preocupe, contacta de inmediato con la clínica ({{TELEFONOS}}) o con un servicio de urgencias.
 
@@ -168,25 +168,25 @@ Parte de la seguridad de tu peludo depende de ti. No seguir estas indicaciones a
 
 **Alternativas y consecuencias de no anestesiar.** Alternativas comentadas (otro tipo de anestesia, aplazar el procedimiento hasta estabilizar a tu peludo, tratamiento médico, derivación a un centro de referencia u hospital con anestesiólogo especialista):
 
-[caja]
+[caja#alternativas]
 
 Consecuencias de no realizar el procedimiento:
 
-[caja]
+[caja#consecuencias]
 
 **Cambios durante el procedimiento.** Si durante la anestesia surge una complicación o un hallazgo imprevisto, intentaremos contactar contigo en el teléfono indicado. Si no es posible y la vida de tu peludo está en peligro, el veterinario actuará según su criterio profesional en su beneficio.
 
-[ ] Autorizo, si no se me localiza, a ampliar el procedimiento por hallazgos que no supongan peligro inmediato hasta un importe adicional de [linea-corta] €.
+[ ]#ampliacion-autoriza Autorizo, si no se me localiza, a ampliar el procedimiento por hallazgos que no supongan peligro inmediato hasta un importe adicional de [linea-corta#ampliacion-importe] €.
 
-[ ] No autorizo ampliaciones sin mi consentimiento: se me consultará antes, aunque sea necesario despertar a mi peludo.
+[ ]#ampliacion-no-autoriza No autorizo ampliaciones sin mi consentimiento: se me consultará antes, aunque sea necesario despertar a mi peludo.
 
 **Reanimación cardiopulmonar.** En caso de parada cardiorrespiratoria:
 
-[ ] Autorizo maniobras de reanimación. [ ] No deseo que se realicen maniobras de reanimación.
+[ ]#rcp-autoriza Autorizo maniobras de reanimación. [ ]#rcp-no-autoriza No deseo que se realicen maniobras de reanimación.
 
 **Necropsia en caso de fallecimiento.** Si tu peludo falleciera durante el procedimiento o la recuperación, te ofreceremos la realización de una necropsia en un laboratorio o servicio externo independiente para conocer la causa de la muerte. Tu decisión se recogerá por escrito en ese momento.
 
-**Coste.** El coste previsto figura en el presupuesto n.º [linea-corta], que declaro haber recibido. Las complicaciones pueden requerir tratamientos u hospitalización adicionales con un coste no incluido en él.
+**Coste.** El coste previsto figura en el presupuesto n.º [linea-corta#presupuesto], que declaro haber recibido. Las complicaciones pueden requerir tratamientos u hospitalización adicionales con un coste no incluido en él.
 
 **Revocación.** Puedes retirar este consentimiento en cualquier momento antes del inicio del procedimiento, sin tener que justificarlo, firmando el apartado de revocación.
 
@@ -212,23 +212,23 @@ En consecuencia, **AUTORIZO** de forma libre y voluntaria la realización de la 
 
 **Preguntas que nos has planteado y respuestas del veterinario:**
 
-[caja-grande]
+[caja-grande#preguntas]
 
 ::: tabla primera-columna-etiquetas
 |  | Tutor/a o responsable legal | Veterinario/a responsable |
 |---|---|---|
-| Nombre | [linea] | [linea] |
-| N.º de colegiado/a | — | [linea] |
+| Nombre | [linea#titular] | [linea#veterinario-nombre] |
+| N.º de colegiado/a | — | [linea#veterinario-colegiado] |
 | Firma | [firma: Firma] | [firma: Firma y sello] |
-| Lugar, fecha y hora | {{LOCALIDAD}}, [linea-corta] a las [linea-corta] | {{LOCALIDAD}}, [linea-corta] a las [linea-corta] |
+| Lugar, fecha y hora | {{LOCALIDAD}}, [linea-corta#fecha-firma-titular] a las [linea-corta#hora-firma-titular] | {{LOCALIDAD}}, [linea-corta#fecha-firma-veterinario] a las [linea-corta#hora-firma-veterinario] |
 :::
 
-[ ] Firma en representación del tutor/a: se adjunta su autorización escrita para este procedimiento y copia del DNI de ambos.
+[ ]#representacion Firma en representación del tutor/a: se adjunta su autorización escrita para este procedimiento y copia del DNI de ambos.
 
 ::: destacado
 **Revocación del consentimiento.** Revoco el consentimiento otorgado y no autorizo el procedimiento. He sido informado/a de las consecuencias de esta decisión.
 
-[firma: Firma del tutor/a] Fecha y hora: [linea]
+[firma: Firma del tutor/a] Fecha y hora: [linea#revocacion-fecha-hora]
 :::
 
 ::: nota

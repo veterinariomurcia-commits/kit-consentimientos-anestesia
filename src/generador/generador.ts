@@ -46,6 +46,8 @@ import {
   firmaSola,
   partirPorFirma,
   runCasilla,
+  runsTextoLibre,
+  valorDe,
   runHueco,
   soloCasillas,
   tieneCaja,
@@ -260,11 +262,11 @@ function lineaARuns(linea: Linea, medida: Medida): ParagraphChild[] {
           ...marcaPendiente(t.quitado),
         });
       case 'casilla':
-        return runCasilla();
+        return runCasilla(t.marcada);
       case 'linea-corta':
-        return runHueco(medida.enCelda ? MEDIDA.lineaCortaEnCelda : MEDIDA.lineaCorta, medida.tamanoPt);
+        return runHueco(medida.enCelda ? MEDIDA.lineaCortaEnCelda : MEDIDA.lineaCorta, medida.tamanoPt, t.valor);
       case 'linea':
-        return runHueco(anchoLineaRestante(linea.slice(0, i), medida), medida.tamanoPt);
+        return runHueco(anchoLineaRestante(linea.slice(0, i), medida), medida.tamanoPt, t.valor);
       case 'caja':
       case 'caja-grande':
       case 'firma':
@@ -400,8 +402,10 @@ function crearBloque(b: Bloque, ctx: Contexto): (Paragraph | Table)[] {
     case 'titulo2':
       return [parrafo(ctx, { heading: HeadingLevel.HEADING_2, children: lineaARuns(b.contenido, medidaCuerpo(ctx)) })];
     case 'parrafo':
-      if (esSolo(b.contenido, 'caja')) return [crearCaja(MEDIDA.altoCaja, ctx.estado.conservar)];
-      if (esSolo(b.contenido, 'caja-grande')) return [crearCaja(MEDIDA.altoCajaGrande, ctx.estado.conservar)];
+      if (esSolo(b.contenido, 'caja')) return [crearCaja(MEDIDA.altoCaja, ctx.estado.conservar, valorDe(b.contenido))];
+      if (esSolo(b.contenido, 'caja-grande')) {
+        return [crearCaja(MEDIDA.altoCajaGrande, ctx.estado.conservar, valorDe(b.contenido))];
+      }
       if (tieneFirma(b.contenido)) return [crearLineaFirma(b.contenido, ctx)];
       return [parrafo(ctx, { style: ctx.estiloParrafo, children: lineaARuns(b.contenido, medidaCuerpo(ctx)) })];
     case 'lista': {
@@ -514,15 +518,20 @@ interface ContenidoCelda {
 function contenidoCelda(linea: Linea, ancho: number, estilo: string, conservar = false): ContenidoCelda {
   // "Conservar con el siguiente" en todos los párrafos de la fila: así Word no separa la fila de lo que sigue.
   const atado = conservar ? { keepNext: true } : {};
+  // Dato del paciente (T7) del único hueco de la celda: va escrito dentro; si no hay, en blanco.
+  const valor = valorDe(linea);
   const vacio = (alto: number): ContenidoCelda => ({
-    parrafos: [new Paragraph({ style: estilo, ...atado })],
+    parrafos: [new Paragraph({ style: estilo, ...atado, children: valor ? runsTextoLibre(valor) : undefined })],
     alto,
-    alineacion: VerticalAlignTable.CENTER,
+    // Con texto, se escribe desde arriba, como en un recuadro escrito a mano.
+    alineacion: valor ? VerticalAlignTable.TOP : VerticalAlignTable.CENTER,
     fondo: FONDO_CAMPO,
   });
   if (esSolo(linea, 'linea')) {
     return {
-      parrafos: [new Paragraph({ style: ESTILO.campo, ...atado })],
+      parrafos: [
+        new Paragraph({ style: ESTILO.campo, ...atado, children: valor ? [new TextRun(valor)] : undefined }),
+      ],
       alto: MEDIDA.altoFila,
       alineacion: VerticalAlignTable.CENTER,
     };
@@ -655,8 +664,11 @@ function crearTablaDatos(b: Extract<Bloque, { tipo: 'tabla-datos' }>, paleta: Pa
 /** Borde de las cajas para escribir. */
 const BORDE_CAJA = borde(GRIS, 4);
 
-/** [caja] o [caja-grande] en un párrafo propio: una tabla de una celda con borde gris, fondo gris suave y alto mínimo. */
-function crearCaja(alto: number, conservar = false): Table {
+/**
+ * [caja] o [caja-grande] en un párrafo propio: una tabla de una celda con borde gris, fondo gris suave y alto mínimo.
+ * Con un dato del paciente (T7), lleva el texto dentro y crece si hace falta.
+ */
+function crearCaja(alto: number, conservar = false, valor?: string): Table {
   return new Table({
     width: { size: ANCHO_UTIL, type: WidthType.DXA },
     columnWidths: [ANCHO_UTIL],
@@ -671,7 +683,9 @@ function crearCaja(alto: number, conservar = false): Table {
           new TableCell({
             width: { size: ANCHO_UTIL, type: WidthType.DXA },
             shading: fondo(FONDO_CAMPO),
-            children: [new Paragraph({ keepNext: conservar || undefined })],
+            children: [
+              new Paragraph({ keepNext: conservar || undefined, children: valor ? runsTextoLibre(valor) : undefined }),
+            ],
           }),
         ],
       }),

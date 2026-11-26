@@ -34,6 +34,9 @@ export const MEDIDA = {
 /** Carácter de la casilla (U+2610). */
 export const CASILLA = '☐';
 
+/** Carácter de la casilla marcada (U+2612), para los datos del paciente (T7). */
+export const CASILLA_MARCADA = '☒';
+
 /** Espacio que no se parte (U+00A0): con él se dibujan los huecos subrayados. */
 const ESPACIO_FIJO = ' ';
 
@@ -57,23 +60,50 @@ function anchoTramo(t: Tramo, tamanoPt: number, enCelda: boolean): number {
       return t.texto.length * (t.negrita ? EM_LETRA_NEGRITA : EM_LETRA) * em(tamanoPt);
     case 'casilla':
       return EM_CASILLA * em(tamanoPt);
-    case 'linea-corta':
-      return enCelda ? MEDIDA.lineaCortaEnCelda : MEDIDA.lineaCorta;
+    case 'linea-corta': {
+      const hueco = enCelda ? MEDIDA.lineaCortaEnCelda : MEDIDA.lineaCorta;
+      // Relleno con un dato largo, el hueco crece con el texto.
+      const texto = t.valor ? (t.valor.length + 2) * EM_LETRA * em(tamanoPt) : 0;
+      return Math.max(hueco, texto);
+    }
     default:
       return 0;
   }
 }
 
-/** Casilla ☐ con el estilo de carácter "Casilla" (una fuente que tiene ese símbolo). */
-export const runCasilla = () => new TextRun({ text: CASILLA, style: ESTILO.casilla });
+/** Casilla ☐ (o ☒ si está marcada) con el estilo de carácter "Casilla" (una fuente que tiene ese símbolo). */
+export const runCasilla = (marcada = false) =>
+  new TextRun({ text: marcada ? CASILLA_MARCADA : CASILLA, style: ESTILO.casilla });
 
 /**
  * Hueco para escribir: espacios fijos subrayados con el estilo "Hueco".
  * Es un "tramo con borde inferior" (regla 3 de diseño): sin guiones bajos.
+ * Si lleva un dato del paciente (T7), el dato va escrito sobre la línea y el resto del hueco
+ * sigue subrayado, para que se vea que es un campo y se pueda corregir a mano.
  */
-export function runHueco(anchoTwips: number, tamanoPt: number): TextRun {
-  const cuantos = Math.max(4, Math.round(anchoTwips / (EM_ESPACIO_FIJO * em(tamanoPt))));
+export function runHueco(anchoTwips: number, tamanoPt: number, valor?: string): TextRun {
+  const anchoEspacio = EM_ESPACIO_FIJO * em(tamanoPt);
+  if (valor) {
+    const anchoTexto = (valor.length + 1) * EM_LETRA * em(tamanoPt);
+    const resto = Math.max(2, Math.round((anchoTwips - anchoTexto) / anchoEspacio));
+    return new TextRun({ text: `${ESPACIO_FIJO}${valor}${ESPACIO_FIJO.repeat(resto)}`, style: ESTILO.hueco });
+  }
+  const cuantos = Math.max(4, Math.round(anchoTwips / anchoEspacio));
   return new TextRun({ text: ESPACIO_FIJO.repeat(cuantos), style: ESTILO.hueco });
+}
+
+/**
+ * Texto de un dato del paciente que puede tener varias líneas (las cajas): cada salto de línea
+ * del texto es un salto de línea en Word, dentro del mismo párrafo.
+ */
+export function runsTextoLibre(valor: string): TextRun[] {
+  return valor.split(/\r?\n/).map((trozo, i) => new TextRun({ text: trozo, break: i > 0 ? 1 : undefined }));
+}
+
+/** Dato del paciente del único hueco de la línea (por ejemplo, una celda que es solo un [linea]). */
+export function valorDe(linea: Linea): string | undefined {
+  const t = utiles(linea)[0];
+  return t && 'valor' in t ? t.valor : undefined;
 }
 
 /** Dónde se va a escribir una línea: ancho disponible y tamaño de la letra. */

@@ -18,6 +18,7 @@ import type {
   Formato,
   Linea,
   Tramo,
+  TipoHueco,
   TipoRecuadro,
   Variable,
 } from './tipos.ts';
@@ -68,6 +69,7 @@ export function leerContenido(texto: string, datos: DatosClinica, archivo = 'con
   const lector = new LectorCuerpo(datos, error);
   const bloques = lector.leerBloques(lineas.slice(primeraLineaCuerpo), false);
   for (const mensaje of revisarApartados(bloques)) errores.push(`${archivo}: ${mensaje}`);
+  for (const mensaje of revisarCampos(bloques)) errores.push(`${archivo}: ${mensaje}`);
 
   if (errores.length > 0) throw new ErrorContenido(errores);
   return { cabecera: cabecera as Cabecera, bloques };
@@ -128,6 +130,27 @@ function revisarApartados(bloques: Bloque[]): string[] {
     }
   }
   return errores;
+}
+
+/**
+ * Un mismo nombre de campo puede salir en varios sitios (el nombre del titular va en el
+ * apartado 1 y en la tabla de firmas), pero siempre como casilla o siempre como hueco: si no,
+ * no se sabría si su dato es una marca o un texto.
+ */
+function revisarCampos(bloques: Bloque[]): string[] {
+  const clase = new Map<string, 'casilla' | 'hueco'>();
+  const errores: string[] = [];
+  for (const t of bloques.flatMap(lineasDeBloque).flat()) {
+    if (!('campo' in t) || t.campo === undefined) continue;
+    const esta = t.tipo === 'casilla' ? 'casilla' : 'hueco';
+    const antes = clase.get(t.campo);
+    if (antes === undefined) clase.set(t.campo, esta);
+    else if (antes !== esta) {
+      errores.push(`el campo "#${t.campo}" se usa a la vez en una casilla y en un hueco; cambia uno de los nombres.`);
+      clase.set(t.campo, esta);
+    }
+  }
+  return [...new Set(errores)];
 }
 
 // ---------------------------------------------------------------------------
@@ -373,6 +396,22 @@ class LectorCuerpo {
     };
   }
 
+  /**
+   * Nombre de campo de un hueco o una casilla ("[linea#dni]" → "dni"), o nada si no lleva.
+   * Solo minúsculas sin tilde, números y guiones, para escribirlo igual en las dos versiones.
+   */
+  nombreCampo(nombre: string | undefined, marca: string, n: number): { campo?: string } {
+    if (nombre === undefined) return {};
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(nombre)) {
+      this.error(
+        n,
+        `el nombre de campo de "${marca}" no es válido. Usa solo minúsculas sin tilde, números y guiones, ` +
+          'por ejemplo "[linea#fecha-entrega]" o "[ ]#perro".',
+      );
+    }
+    return { campo: nombre };
+  }
+
   /** Convierte una línea de texto en tramos: negrita, cursiva, casillas, huecos y datos. */
   leerLinea(texto: string, n: number): Linea {
     const tramos: Tramo[] = [];
@@ -389,9 +428,10 @@ class LectorCuerpo {
       }
     };
 
-    // Marcas que reconoce el lector, en orden de prioridad.
+    // Marcas que reconoce el lector, en orden de prioridad. Los huecos y las casillas pueden
+    // llevar un nombre de campo (T7): "[linea#dni]", "[ ]#perro".
     const marcas =
-      /\*\*|\*|\[ \]|\[linea\]|\[linea-corta\]|\[caja\]|\[caja-grande\]|\[firma:([^\]]*)\]|\{\{([^}]*)\}\}|\[ref: *(\d+) *\]|\[[a-z][a-z-]*(?::[^\]]*)?\]/g;
+      /\*\*|\*|\[ \](?:#([^\s|]*))?|\[(linea|linea-corta|caja|caja-grande)(?:#([^\]]*))?\]|\[firma:([^\]]*)\]|\{\{([^}]*)\}\}|\[ref: *(\d+) *\]|\[[a-z][a-z-]*(?:[:#][^\]]*)?\]/g;
     let desde = 0;
     for (const m of texto.matchAll(marcas)) {
       ponerTexto(texto.slice(desde, m.index));
@@ -400,31 +440,28 @@ class LectorCuerpo {
 
       if (marca === '**') formato.negrita = !formato.negrita;
       else if (marca === '*') formato.cursiva = !formato.cursiva;
-      else if (marca === '[ ]') tramos.push({ tipo: 'casilla' });
-      else if (marca === '[linea]') tramos.push({ tipo: 'linea' });
-      else if (marca === '[linea-corta]') tramos.push({ tipo: 'linea-corta' });
-      else if (marca === '[caja]') tramos.push({ tipo: 'caja' });
-      else if (marca === '[caja-grande]') tramos.push({ tipo: 'caja-grande' });
-      else if (m[1] !== undefined) {
-        const textoFirma = m[1].trim();
+      else if (marca.startsWith('[ ]')) tramos.push({ tipo: 'casilla', ...this.nombreCampo(m[1], marca, n) });
+      else if (m[2] !== undefined) tramos.push({ tipo: m[2] as TipoHueco, ...this.nombreCampo(m[3], marca, n) });
+      else if (m[4] !== undefined) {
+        const textoFirma = m[4].trim();
         if (textoFirma === '') this.error(n, 'un "[firma: …]" necesita un texto, por ejemplo "[firma: Firma]".');
         tramos.push({ tipo: 'firma', texto: textoFirma });
-      } else if (m[2] !== undefined) {
-        const nombre = m[2].trim();
+      } else if (m[5] !== undefined) {
+        const nombre = m[5].trim();
         if ((VARIABLES as readonly string[]).includes(nombre)) {
           const variable = nombre as Variable;
           tramos.push({ tipo: 'dato', variable, ...resolverVariable(variable, this.datos), ...formato });
         } else {
           this.error(n, `la variable "{{${nombre}}}" no existe. Las válidas son: ${VARIABLES.join(', ')}.`);
         }
-      } else if (m[3] !== undefined) {
-        const apartado = Number(m[3]);
+      } else if (m[6] !== undefined) {
+        const apartado = Number(m[6]);
         tramos.push({ tipo: 'referencia', apartado, texto: String(apartado), quitado: false, ...formato });
       } else {
         this.error(
           n,
           `la marca "${marca}" no existe. Las válidas son: [ ], [linea], [linea-corta], [caja], [caja-grande], ` +
-            '[firma: Texto] y [ref:N].',
+            '[firma: Texto] y [ref:N]. Los huecos y las casillas pueden llevar un nombre: [linea#dni], [ ]#perro.',
         );
       }
     }

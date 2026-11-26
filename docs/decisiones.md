@@ -287,3 +287,31 @@ Consecuencia vista en las muestras: al quitar el apartado 6, la página anterior
 **Pendiente:**
 - ⚠️ REVISAR: "…firmando el apartado de revocación" (apartado 7 del consentimiento) se refiere al recuadro de revocación del apartado 8. Como no lleva número, no se avisa si se quita el apartado 8. Se puede explicar en la web en la T8.
 - Hecho: la marca `[ref:N]` está en la tabla de formato de `CLAUDE.md` (aprobado por Sira).
+
+## Decisiones de la tarea T7 · Datos del paciente (26/11/2026)
+
+**D69 · Cada hueco y cada casilla del consentimiento lleva un nombre en `contenido/`.** Se escribe pegado a la marca: `[linea#dni]`, `[linea-corta#peso]`, `[caja#riesgos]`, `[ ]#perro`. Solo minúsculas sin tilde, números y guiones. El texto revisado no cambia, solo las marcas (como en la D64). Las dos versiones tienen los mismos huecos en el mismo orden, así que llevan los mismos nombres, y los mismos datos del paciente sirven para las dos. Aprobado por Sira, también la nueva fila en la tabla de formato de `CLAUDE.md`.
+Por qué: para rellenar un hueco hay que saber qué es. Un nombre en el texto no depende del orden ni de la redacción, y sigue funcionando aunque se quiten apartados.
+
+**D70 · Se pueden rellenar todos los huecos y casillas, salvo las firmas** (opción c de Sira): 72 campos, también los que decide el cliente (acepta o rechaza las pruebas, ampliaciones, reanimación, representación y revocación). La responsabilidad de lo que se rellena es de cada clínica (como la D57).
+- Un mismo nombre puede salir en varios sitios y se rellena en todos: `titular` va en el apartado 1 y en la tabla de firmas. El lector avisa si un nombre se usa a la vez para una casilla y para un hueco.
+- El recuadro de preguntas y respuestas (D62) es el campo `preguntas`.
+
+**D71 · Cómo sale un campo relleno** (aprobado por Sira):
+- **Hueco (`[linea]`, `[linea-corta]`):** el dato escrito sobre la misma línea subrayada; si el dato es más corto, el resto del hueco sigue subrayado. Así se ve que es un campo y se puede corregir a mano encima.
+- **Celda que es solo un hueco** (tabla de datos, tabla de firmas): el dato dentro del campo gris con la línea debajo.
+- **Recuadro (`[caja]`, `[caja-grande]`):** el texto dentro, empezando arriba. Los saltos de línea se respetan y el recuadro crece si hace falta.
+- **Casilla marcada:** ☒ (U+2612), en la misma fuente que ☐.
+- **Campo vacío:** sale como antes, con el hueco en blanco.
+
+**D72 · Las funciones de los campos están en `src/contenido/campos.ts`** y no usan nada propio de Node (como la D19 y la D68).
+- `listarCampos` da la lista para el paso 3 de la web (T8): nombre, clase (casilla, texto corto, texto o texto largo), apartado y un texto de contexto (la etiqueta de la fila o la línea donde está; en los recuadros sueltos, el párrafo de antes).
+- `rellenarCampos` pone los datos en una copia del documento. Se usa **antes** de quitar apartados, para comprobar los nombres con el documento entero. Si llega un nombre que no existe, o un texto para una casilla (o al revés), ese dato no se usa y se devuelve un aviso.
+- Los datos del paciente solo se usan para fabricar el Word: no se guardan en ningún sitio (D60).
+
+**D73 · Muestras con paciente.** `npm run muestras` genera 2 muestras nuevas (13 Word en total): `consentimiento-neutra-con-paciente.docx` y `consentimiento-calida-con-paciente.docx`, con la paciente ficticia «Luna» (`src/muestras/paciente-ejemplo.ts`, todos los datos inventados). Hay campos rellenos de todas las clases y otros vacíos a propósito. Comprobado en PDF: siguen siendo 6 páginas, nada se descuadra y cada firma sigue con su texto. `npm run contenido` muestra ahora el nombre de cada campo y la lista de campos, y avisa si queda algún hueco del consentimiento sin nombre.
+Además, si un Word de `salida/` está abierto en Word, `npm run muestras` avisa ("el archivo está abierto en otro programa") y sigue con las demás muestras, en lugar de pararse con un error incomprensible.
+
+**Pendiente:**
+- T8: en la web, agrupar las casillas que van juntas (perro/gato, tipo de anestesia, ASA…) y escribir una etiqueta clara para cada campo, a partir del contexto que da `listarCampos`.
+- T11: qué pasa si se escribe más de una página en un recuadro (ya estaba en la D62; ahora también se puede escribir desde la web).

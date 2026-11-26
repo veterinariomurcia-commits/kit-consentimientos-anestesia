@@ -7,11 +7,14 @@
 // Cada documento se lee dos veces:
 //   1. Con los datos de la "Clínica Veterinaria Ejemplo": se muestra la lista completa de bloques.
 //   2. Con todos los datos vacíos: se muestran los huecos que saldrían en amarillo.
+// Después se muestra la lista de campos del paciente (T7), con su nombre, y se avisa si en el
+// consentimiento queda algún hueco o casilla sin nombre.
 // Si algún texto tiene un problema, se explica con su número de línea y el script termina con error.
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { ErrorContenido, leerContenido } from '../src/contenido/lector.ts';
+import { listarCampos } from '../src/contenido/campos.ts';
+import { ErrorContenido, leerContenido, lineasDeBloque } from '../src/contenido/lector.ts';
 import type { Bloque, Linea, Tramo } from '../src/contenido/tipos.ts';
 import { DATOS_VACIOS } from '../src/contenido/variables.ts';
 import { CLINICA_EJEMPLO } from '../src/muestras/clinica-ejemplo.ts';
@@ -31,6 +34,7 @@ if (archivos.length === 0) {
 // --- Cómo se escribe cada pieza en pantalla ---
 
 function tramoATexto(t: Tramo): string {
+  const nombre = 'campo' in t && t.campo ? `#${t.campo}` : '';
   switch (t.tipo) {
     case 'texto':
       return t.negrita ? `**${t.texto}**` : t.cursiva ? `*${t.texto}*` : t.texto;
@@ -39,15 +43,15 @@ function tramoATexto(t: Tramo): string {
     case 'referencia':
       return `{ref:${t.apartado}}`;
     case 'casilla':
-      return '☐';
+      return `☐${nombre}`;
     case 'linea':
-      return '[____________]';
+      return `[____${nombre}____]`;
     case 'linea-corta':
-      return '[____]';
+      return `[__${nombre}__]`;
     case 'caja':
-      return '[CAJA 3 líneas]';
+      return `[CAJA 3 líneas${nombre}]`;
     case 'caja-grande':
-      return '[CAJA 5 líneas]';
+      return `[CAJA 5 líneas${nombre}]`;
     case 'firma':
       return `[FIRMA: ${t.texto}]`;
   }
@@ -137,6 +141,22 @@ for (const archivo of archivos) {
     const huecos = buscarHuecos(vacio.bloques);
     console.log('');
     console.log(`Con todos los datos vacíos salen ${huecos.length} hueco(s) amarillo(s): ${huecos.join(', ') || '—'}`);
+
+    const campos = listarCampos(doc);
+    if (campos.length > 0) {
+      console.log(`\nCampos del paciente (${campos.length}):`);
+      for (const c of campos) {
+        const donde = c.apartado === null ? '   ' : `${String(c.apartado).padStart(2)}.`;
+        console.log(`  ${donde} ${c.nombre.padEnd(34)} ${c.clase.padEnd(12)} ${recortar(c.contexto, 60)}`);
+      }
+    }
+    const sinNombre = doc.bloques
+      .flatMap(lineasDeBloque)
+      .flat()
+      .filter((t) => 'campo' in t && t.campo === undefined).length;
+    if (doc.cabecera.documento === 'consentimiento' && sinNombre > 0) {
+      console.log(`⚠ Hay ${sinNombre} hueco(s) o casilla(s) sin nombre: no se podrán rellenar desde la web.`);
+    }
     console.log(`✔ ${archivo}: ${doc.bloques.length} bloques leídos sin errores.\n`);
   } catch (e) {
     hayErrores = true;
