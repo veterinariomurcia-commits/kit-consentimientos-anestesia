@@ -1,0 +1,168 @@
+// Piezas de formulario del documento (tarea T4): casillas ☐, huecos para escribir, cajas y firmas.
+//
+// Aquí solo están las piezas pequeñas y las medidas. El montaje de las tablas (tabla de datos,
+// filas de firma, recuadros) se hace en generador.ts, que es quien conoce el ancho de la página.
+//
+// Medidas en "twips" (vigésimos de punto): 567 ≈ 1 cm.
+
+import { TextRun } from 'docx';
+import type { Linea, Tramo } from '../contenido/tipos.ts';
+import { ESTILO } from './estilos.ts';
+
+const CM = 567;
+
+/** Medidas de los elementos de formulario. */
+export const MEDIDA = {
+  /** [linea-corta] en un párrafo: unos 3 cm. */
+  lineaCorta: 3 * CM,
+  /** [linea-corta] dentro de una celda: algo más corto, para que quepan dos en la misma línea. */
+  lineaCortaEnCelda: Math.round(1.8 * CM),
+  /** [linea] en medio de una frase: como mínimo 3 cm; si no cabe, ocupa una línea entera. */
+  lineaMinima: 3 * CM,
+  /** Alto mínimo de una fila de la tabla de datos o de una celda para escribir (unos 0,75 cm). */
+  altoFila: 425,
+  /** [caja]: unas 3 líneas de texto. */
+  altoCaja: Math.round(1.6 * CM),
+  /** [caja-grande]: unas 5 líneas de texto. */
+  altoCajaGrande: Math.round(2.6 * CM),
+  /** Recuadro de firma: unos 2 cm de alto. */
+  altoFirma: 2 * CM,
+} as const;
+
+/** Carácter de la casilla (U+2610). */
+export const CASILLA = '☐';
+
+/** Espacio que no se parte (U+00A0): con él se dibujan los huecos subrayados. */
+const ESPACIO_FIJO = ' ';
+
+// --- Anchos aproximados de Arial (en "em": 1 em = el tamaño de la letra) ---
+// Solo sirven para estimar cuánto sitio queda en la línea. Si la estimación falla un poco, el
+// hueco baja entero a la línea siguiente: no se descuadra nada.
+const EM_ESPACIO_FIJO = 0.278;
+const EM_LETRA = 0.52;
+const EM_LETRA_NEGRITA = 0.57;
+const EM_CASILLA = 0.9;
+
+/** Twips que ocupa 1 em con una letra de `tamanoPt` puntos. */
+const em = (tamanoPt: number) => tamanoPt * 20;
+
+/** Ancho aproximado de un trozo de línea, en twips. Las piezas sin ancho propio devuelven 0. */
+function anchoTramo(t: Tramo, tamanoPt: number, enCelda: boolean): number {
+  switch (t.tipo) {
+    case 'texto':
+    case 'dato':
+      return t.texto.length * (t.negrita ? EM_LETRA_NEGRITA : EM_LETRA) * em(tamanoPt);
+    case 'casilla':
+      return EM_CASILLA * em(tamanoPt);
+    case 'linea-corta':
+      return enCelda ? MEDIDA.lineaCortaEnCelda : MEDIDA.lineaCorta;
+    default:
+      return 0;
+  }
+}
+
+/** Casilla ☐ con el estilo de carácter "Casilla" (una fuente que tiene ese símbolo). */
+export const runCasilla = () => new TextRun({ text: CASILLA, style: ESTILO.casilla });
+
+/**
+ * Hueco para escribir: espacios fijos subrayados con el estilo "Hueco".
+ * Es un "tramo con borde inferior" (regla 3 de diseño): sin guiones bajos.
+ */
+export function runHueco(anchoTwips: number, tamanoPt: number): TextRun {
+  const cuantos = Math.max(4, Math.round(anchoTwips / (EM_ESPACIO_FIJO * em(tamanoPt))));
+  return new TextRun({ text: ESPACIO_FIJO.repeat(cuantos), style: ESTILO.hueco });
+}
+
+/** Dónde se va a escribir una línea: ancho disponible y tamaño de la letra. */
+export interface Medida {
+  /** Ancho disponible para el texto, en twips. */
+  ancho: number;
+  /** Tamaño de la letra, en puntos. */
+  tamanoPt: number;
+  /** La línea está dentro de una celda de tabla (los huecos cortos son algo más cortos). */
+  enCelda: boolean;
+}
+
+/**
+ * Ancho del hueco de un [linea] que va después de otros trozos de la línea:
+ * lo que se estima que queda hasta el final de la línea. Si queda menos del mínimo, el hueco
+ * ocupa una línea entera (y baja solo a la línea siguiente).
+ */
+export function anchoLineaRestante(anteriores: Tramo[], medida: Medida): number {
+  const usado = anteriores.reduce((suma, t) => suma + anchoTramo(t, medida.tamanoPt, medida.enCelda), 0);
+  const lineaEntera = Math.round(medida.ancho * 0.97);
+  // Margen de seguridad: la estimación del texto nunca es exacta.
+  const queda = medida.ancho - (usado % medida.ancho) - 1.5 * em(medida.tamanoPt);
+  return queda >= MEDIDA.lineaMinima ? Math.round(queda * 0.92) : lineaEntera;
+}
+
+// --- Clasificar una línea ---
+
+/** Un trozo de texto que solo tiene espacios no cuenta. */
+const esRelleno = (t: Tramo) => t.tipo === 'texto' && t.texto.trim() === '';
+
+/** Los trozos que cuentan de una línea (sin los que solo son espacios). */
+const utiles = (linea: Linea) => linea.filter((t) => !esRelleno(t));
+
+/** La línea es solo un elemento de ese tipo (por ejemplo, un párrafo que es solo un [caja]). */
+export function esSolo(linea: Linea, tipo: Tramo['tipo']): boolean {
+  const u = utiles(linea);
+  return u.length === 1 && u[0].tipo === tipo;
+}
+
+/** La línea solo tiene casillas (por ejemplo, las celdas Acepta / Rechaza de la tabla de pruebas). */
+export const soloCasillas = (linea: Linea) => {
+  const u = utiles(linea);
+  return u.length > 0 && u.every((t) => t.tipo === 'casilla');
+};
+
+/** La línea está vacía o solo tiene espacios. */
+export const estaVacia = (linea: Linea) => utiles(linea).length === 0;
+
+export const tieneFirma = (linea: Linea) => linea.some((t) => t.tipo === 'firma');
+
+export const tieneCaja = (linea: Linea) => linea.some((t) => t.tipo === 'caja' || t.tipo === 'caja-grande');
+
+/** Texto de la línea "Firma", "Firma y sello"…, si la línea es solo un recuadro de firma. */
+export function firmaSola(linea: Linea): string | null {
+  const u = utiles(linea);
+  return u.length === 1 && u[0].tipo === 'firma' ? u[0].texto : null;
+}
+
+/** Un trozo de una línea que lleva un [firma: …]: texto normal o el propio recuadro de firma. */
+export type Segmento = { tipo: 'texto'; linea: Linea } | { tipo: 'firma'; texto: string };
+
+/**
+ * Parte una línea por sus recuadros de firma. Por ejemplo,
+ * "[firma: Firma del titular] Fecha y hora: [linea]" → [firma] + [texto "Fecha y hora: [linea]"].
+ * Quita los espacios sobrantes de los bordes de cada trozo de texto.
+ */
+export function partirPorFirma(linea: Linea): Segmento[] {
+  const segmentos: Segmento[] = [];
+  let actual: Linea = [];
+  const cerrar = () => {
+    const recortada = recortar(actual);
+    if (!estaVacia(recortada)) segmentos.push({ tipo: 'texto', linea: recortada });
+    actual = [];
+  };
+  for (const t of linea) {
+    if (t.tipo === 'firma') {
+      cerrar();
+      segmentos.push({ tipo: 'firma', texto: t.texto });
+    } else {
+      actual.push(t);
+    }
+  }
+  cerrar();
+  return segmentos;
+}
+
+/** Quita los espacios del principio y del final de una línea. */
+function recortar(linea: Linea): Linea {
+  const copia = linea.map((t) => ({ ...t }));
+  const primero = copia[0];
+  if (primero && (primero.tipo === 'texto' || primero.tipo === 'dato')) primero.texto = primero.texto.trimStart();
+  const ultimo = copia[copia.length - 1];
+  if (ultimo && (ultimo.tipo === 'texto' || ultimo.tipo === 'dato')) ultimo.texto = ultimo.texto.trimEnd();
+  return copia.filter((t) => !(t.tipo === 'texto' && t.texto === ''));
+}

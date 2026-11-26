@@ -22,9 +22,9 @@ Leer los 4 archivos de `contenido/` (cabecera + bloques `:::` + elementos `[ ]`,
 Estilos (Normal, Título 1 y 2, listas), página A4 y márgenes, cabecera con logo y datos, pie con versión e iniciales y "Página X de Y", títulos, párrafos, listas, tablas normales y recuadros destacados y notas.
 **Comprobación:** `npm run muestras` genera el documento informativo (versión neutra) y se abre bien en Word. → También genera la versión cálida y una muestra con los datos vacíos.
 
-## T4 · Generador Word: elementos de formulario [ ]
+## T4 · Generador Word: elementos de formulario [x]
 Tabla de datos, casillas ☐, huecos de línea, cajas, recuadros de firma, tabla de pruebas, tabla de firmas y recuadro de revocación.
-**Comprobación:** las 4 muestras + la muestra con datos vacíos se generan sin errores.
+**Comprobación:** las 4 muestras + la muestra con datos vacíos se generan sin errores. → `npm run muestras` genera 6 Word (también el consentimiento con los datos vacíos).
 
 ## T5 · Revisión visual frente a la referencia [ ]
 Convertir las muestras a PDF con LibreOffice, compararlas página a página con `referencia/` y corregir diferencias de diseño. Hacer la prueba de estrés (nombre largo y logo apaisado).

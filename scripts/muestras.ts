@@ -4,9 +4,8 @@
 // Usa el mismo generador que la web (src/generador/), con la "Clínica Veterinaria Ejemplo",
 // el logo de marca/ y el color provisional de las muestras.
 //
-// Tarea T3: solo el documento informativo (neutra y cálida) y una muestra con todos los datos
-// vacíos y sin logo, para ver los huecos amarillos. El consentimiento se añade en la tarea T4,
-// cuando el generador sepa dibujar las casillas, los huecos y las firmas.
+// Genera los 4 documentos (2 documentos × 2 versiones) y, de cada documento, una muestra con
+// todos los datos vacíos y sin logo, para ver los huecos amarillos.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -38,6 +37,14 @@ const MUESTRAS: Muestra[] = [
   { contenido: 'informacion-neutra', salida: 'informacion-neutra.docx', datos: CLINICA_EJEMPLO, logo: logoEjemplo },
   { contenido: 'informacion-calida', salida: 'informacion-calida.docx', datos: CLINICA_EJEMPLO, logo: logoEjemplo },
   { contenido: 'informacion-neutra', salida: 'informacion-neutra-datos-vacios.docx', datos: DATOS_VACIOS, logo: null },
+  { contenido: 'consentimiento-neutra', salida: 'consentimiento-neutra.docx', datos: CLINICA_EJEMPLO, logo: logoEjemplo },
+  { contenido: 'consentimiento-calida', salida: 'consentimiento-calida.docx', datos: CLINICA_EJEMPLO, logo: logoEjemplo },
+  {
+    contenido: 'consentimiento-neutra',
+    salida: 'consentimiento-neutra-datos-vacios.docx',
+    datos: DATOS_VACIOS,
+    logo: null,
+  },
 ];
 
 let hayErrores = false;

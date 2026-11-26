@@ -8,7 +8,7 @@
 //   - Tamaño de letra en medios puntos: 20 = 10 pt.
 //   - Espacios y sangrías en "twips" (vigésimos de punto): 567 ≈ 1 cm, 20 = 1 pt.
 
-import { AlignmentType, LevelFormat, type INumberingOptions, type IStylesOptions } from 'docx';
+import { AlignmentType, LevelFormat, UnderlineType, type INumberingOptions, type IStylesOptions } from 'docx';
 import { GRIS, TEXTO_OSCURO, type Paleta } from './color.ts';
 
 export const FUENTE = 'Arial';
@@ -25,9 +25,21 @@ export const ESTILO = {
   nombreClinica: 'NombreClinica',
   datosClinica: 'DatosClinica',
   pie: 'Pie',
+  /** Texto pequeño en gris al pie de un recuadro de firma ("Firma", "Firma y sello"…). */
+  textoFirma: 'TextoFirma',
   /** Estilo de carácter: dato de la clínica que falta (resaltado en amarillo). */
   datoPendiente: 'DatoPendiente',
+  /** Estilo de carácter: casilla ☐, en una fuente que tiene ese símbolo. */
+  casilla: 'Casilla',
+  /** Estilo de carácter: hueco para escribir (espacios fijos subrayados). */
+  hueco: 'Hueco',
 } as const;
+
+/**
+ * Fuente de las casillas ☐. Arial no tiene ese símbolo. Segoe UI Symbol viene con Windows; en Mac,
+ * LibreOffice y Google Docs, si no está, el programa pone sola otra fuente que sí lo tenga.
+ */
+export const FUENTE_CASILLA = 'Segoe UI Symbol';
 
 /** Nombres de las listas (numeraciones de Word). */
 export const LISTA = {
@@ -44,6 +56,7 @@ const TAMANO = {
   titulo2: 22, // 11 pt
   subtitulo: 22, // 11 pt
   tabla: 19, // 9,5 pt
+  firma: 16, // 8 pt
   nombreClinica: 24, // 12 pt
   datosClinica: 17, // 8,5 pt
   pie: 16, // 8 pt
@@ -53,7 +66,7 @@ const TAMANO = {
 const INTERLINEADO = 264;
 
 /** Sangría de las listas: el texto empieza a 0,7 cm y la viñeta cuelga 0,45 cm a su izquierda. */
-const SANGRIA_LISTA = { left: 397, hanging: 255 };
+export const SANGRIA_LISTA = { left: 397, hanging: 255 };
 
 export function crearEstilos(paleta: Paleta): IStylesOptions {
   const fuente = { font: FUENTE };
@@ -148,6 +161,14 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         paragraph: { alignment: AlignmentType.RIGHT, spacing: { before: 0, after: 0, line: 252 } },
       },
       {
+        id: ESTILO.textoFirma,
+        name: 'Texto de firma',
+        basedOn: 'Normal',
+        quickFormat: true,
+        run: { ...fuente, size: TAMANO.firma, color: GRIS },
+        paragraph: { spacing: { before: 0, after: 0, line: 240 } },
+      },
+      {
         id: ESTILO.pie,
         name: 'Pie del documento',
         basedOn: 'Normal',
@@ -161,6 +182,23 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         name: 'Dato pendiente',
         basedOn: 'DefaultParagraphFont',
         run: { highlight: 'yellow' },
+      },
+      {
+        id: ESTILO.casilla,
+        name: 'Casilla',
+        basedOn: 'DefaultParagraphFont',
+        quickFormat: true,
+        run: {
+          font: { ascii: FUENTE_CASILLA, hAnsi: FUENTE_CASILLA, eastAsia: FUENTE_CASILLA, cs: FUENTE_CASILLA },
+          bold: false,
+        },
+      },
+      {
+        id: ESTILO.hueco,
+        name: 'Hueco para escribir',
+        basedOn: 'DefaultParagraphFont',
+        quickFormat: true,
+        run: { underline: { type: UnderlineType.SINGLE, color: GRIS }, bold: false, italics: false },
       },
     ],
   };

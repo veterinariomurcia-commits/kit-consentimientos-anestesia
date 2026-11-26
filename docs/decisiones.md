@@ -121,7 +121,7 @@ Por qué: Word no deja espacio debajo de las tablas, y el texto quedaba pegado a
 **D33 · El salto de página se aplica como "salto de página antes" en el párrafo siguiente**, en lugar de añadir un párrafo vacío.
 Por qué: así no queda una línea en blanco arriba de la página nueva. Si lo siguiente es una tabla, se usa un salto normal.
 
-**D34 · Si un texto usa un elemento de la T4** (casillas, huecos, cajas, firmas o tabla de datos), el generador se para con un mensaje claro ("llega en la tarea T4") en lugar de dibujarlo mal. Por eso en T3 `npm run muestras` genera solo el documento informativo: `informacion-neutra.docx`, `informacion-calida.docx` e `informacion-neutra-datos-vacios.docx` (todos los datos vacíos y sin logo).
+**D34 · (Sustituida por la D36.) Si un texto usa un elemento de la T4** (casillas, huecos, cajas, firmas o tabla de datos), el generador se para con un mensaje claro ("llega en la tarea T4") en lugar de dibujarlo mal. Por eso en T3 `npm run muestras` genera solo el documento informativo: `informacion-neutra.docx`, `informacion-calida.docx` e `informacion-neutra-datos-vacios.docx` (todos los datos vacíos y sin logo).
 
 **D35 · La versión del modelo ("v1.0") está en `VERSION_MODELO`, en `src/generador/generador.ts`.** Cuando cambie el contenido (ver `buenas-practicas.md`), se cambia ahí.
 
@@ -130,3 +130,40 @@ Por qué: así no queda una línea en blanco arriba de la página nueva. Si lo s
 - En el último recuadro, "¿Tiene alguna duda?" y el texto siguiente salen en la misma línea, porque en `contenido/` están en líneas seguidas y forman un solo párrafo (D22). Hay que decidir si se separan.
 
 **Pendiente para T6 (web):** con colores muy claros (por ejemplo, un amarillo), los títulos de apartado se leen mal sobre el blanco. Conviene que el selector avise o que solo ofrezca colores con contraste suficiente.
+
+## Decisiones de la tarea T4 (26/11/2026)
+
+**D36 · Las piezas de formulario están en `src/generador/formulario.ts`** (casilla, huecos, medidas y cómo partir una línea con firma). El montaje de las tablas sigue en `generador.ts`. Ya no hay avisos de "llega en la tarea T4": `npm run muestras` genera también el consentimiento (6 Word en total). (Sustituye a la D34.)
+
+**D37 · Casillas ☐ con el estilo de carácter "Casilla", en la fuente Segoe UI Symbol.**
+Por qué: Arial no tiene el símbolo ☐. Segoe UI Symbol viene con Windows; en Mac, LibreOffice y Google Docs, el programa pone sola otra fuente que lo tenga (en LibreOffice se ve bien). Se comprueba en T7. El espacio que va detrás de una casilla es un espacio que no se parte, para que "☐ Perro" nunca quede dividido entre dos líneas.
+
+**D38 · Huecos para escribir:**
+- Un `[linea]` que ocupa él solo una celda deja la celda vacía: la propia celda es el hueco.
+- Un hueco dentro de una frase es un trozo de espacios fijos subrayados en gris, con el estilo de carácter "Hueco". No lleva guiones bajos.
+- `[linea-corta]` mide unos 3 cm en el texto y 1,8 cm dentro de una tabla, para que quepan dos en la misma celda ("Sexo / Edad / Peso").
+- `[linea]` dentro de una frase llega más o menos hasta el final de la línea. Si queda menos de 3 cm, ocupa una línea entera.
+Por qué: si alguien escribe más texto delante, el hueco baja entero a la línea siguiente y no descuadra nada. El cálculo del final de la línea es aproximado, porque Word no lo deja saber de antemano.
+
+**D39 · Tabla de datos (`::: tabla-datos`):** la etiqueta ocupa el 38 % del ancho, en negrita sobre el fondo suave del color, y el contenido el 62 %. Solo lleva líneas horizontales grises, así que la línea de debajo de cada fila es la línea sobre la que se escribe. Las filas miden como mínimo 0,75 cm, y la fila con `[caja]` es más alta, con la etiqueta arriba.
+
+**D40 · Cajas:** `[caja]` mide 1,6 cm de alto (unas 3 líneas) y `[caja-grande]` 2,6 cm (unas 5 líneas). Son una tabla de una celda con borde gris y altura mínima, así que crecen si se escribe más.
+
+**D41 · Recuadros de firma (2 cm de alto, con el texto pequeño en gris abajo):**
+- **En una línea de texto** (bloque `::: firma` o revocación): una tabla sin bordes, con cada trozo en una celda a partes iguales. Por ejemplo, la etiqueta a la izquierda y el recuadro con borde discontinuo a la derecha.
+- **En la tabla de firmas:** la celda es el recuadro, pero sin borde discontinuo, porque la tabla ya la enmarca. Por qué: en las pruebas, el borde discontinuo de la celda chocaba con las líneas de la tabla y LibreOffice lo dibujaba a medias.
+- **Dentro de un `::: destacado`** (revocación): la línea con la firma va en una fila propia del mismo recuadro, con una columna estrecha de relleno a cada lado y una fila de relleno debajo. Por qué: meter una tabla dentro de otra es lo que peor aguanta Google Docs, y el relleno evita que el borde discontinuo se coma el borde de color del recuadro.
+
+**D42 · Dos tablas seguidas se separan con un párrafo vacío muy bajito (6 pt).**
+Por qué: Word y LibreOffice funden en una sola dos tablas seguidas (pasaba con la caja de "Preguntas" y la tabla de firmas).
+
+**D43 · Un elemento en un sitio donde no se puede dibujar avisa con un error claro.** Por ejemplo: un `[caja]` en medio de una frase, una firma dentro de un título o de una lista, o una caja dentro de un `::: destacado`.
+Por qué: igual que la D20, un fallo en el texto debe verse al generar, no en el Word de otra clínica.
+
+**Comprobado en T4:** los 6 Word se generan sin errores. LibreOffice los convierte a PDF, y Word abre el consentimiento y lo exporta a PDF sin problemas.
+
+**Pendiente para T5 (revisión visual):**
+- ⚠️ REVISAR: el consentimiento ocupa 7 páginas (la referencia, 6). La página 5 queda casi vacía porque `contenido/` pone un salto de página antes del apartado 7, y el apartado 6 no cabe entero en la página 4.
+- En la tabla de pruebas, la cabecera "Recomendada" se parte en "Recomendad / a" porque la columna es estrecha. Hay que ajustar el reparto de anchos de las columnas.
+- En la tabla de firmas, "Lugar, fecha y hora" con una localidad larga ("Ciudad Ejemplo") hace que el segundo hueco baje a otra línea.
+- Para ver los PDF como imágenes sin instalar nada se puede usar una función de Windows (`Windows.Data.Pdf`) desde PowerShell. Se usó en T4 con un script temporal; si hace falta en T5, se puede guardar en `scripts/`.
