@@ -14,9 +14,9 @@ Una tarea por sesión de Claude Code. Marca cada una con [x] al terminarla.
 Crear el proyecto Vite + TypeScript, instalar `docx`, `jszip` y `marked`, preparar `.gitignore` y los scripts `dev`, `build` y `muestras`, y crear un logo de ejemplo neutro en `marca/`. Iniciar Git y hacer el primer commit.
 **Comprobación:** `npm run dev` abre una página en blanco con el título del kit.
 
-## T2 · Lector de contenido [ ]
+## T2 · Lector de contenido [x]
 Leer los 4 archivos de `contenido/` (cabecera + bloques `:::` + elementos `[ ]`, `[linea]`, `{{VARIABLE}}`…) y convertirlos en una estructura intermedia que el generador pueda recorrer. Sustituir las variables (o dejar el hueco amarillo si están vacías).
-**Comprobación:** un script muestra por pantalla la lista de bloques de cada documento sin errores.
+**Comprobación:** un script muestra por pantalla la lista de bloques de cada documento sin errores. → `npm run contenido`
 
 ## T3 · Generador Word: base [ ]
 Estilos (Normal, Título 1 y 2, listas), página A4 y márgenes, cabecera con logo y datos, pie con versión e iniciales y "Página X de Y", títulos, párrafos, listas, tablas normales y recuadros destacados y notas.
@@ -31,7 +31,7 @@ Convertir las muestras a PDF con LibreOffice, compararlas página a página con 
 **Comprobación:** Sira revisa los PDF de muestra y da el visto bueno.
 
 ## T6 · Interfaz web [ ]
-Formulario, carga y vista previa del logo, selector de color, elección de versión, botón de descarga (ZIP con los 2 Word + LEEME.txt), aviso legal e instrucción para el PDF. Diseño sencillo, profesional y adaptado a móvil.
+Formulario (campo "Teléfonos de contacto" con el WhatsApp opcional, ver D24), carga y vista previa del logo, selector de color, elección de versión, botón de descarga (ZIP con los 2 Word + LEEME.txt), aviso legal e instrucción para el PDF. Diseño sencillo, profesional y adaptado a móvil.
 **Comprobación:** con `npm run dev`, Sira rellena el formulario y descarga un ZIP que se abre bien.
 
 ## T7 · Pruebas de compatibilidad [ ]

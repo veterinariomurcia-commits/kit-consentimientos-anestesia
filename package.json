@@ -8,12 +8,12 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "muestras": "node scripts/muestras.ts",
-    "logo-ejemplo": "node scripts/crear-logo-ejemplo.ts"
+    "logo-ejemplo": "node scripts/crear-logo-ejemplo.ts",
+    "contenido": "node scripts/ver-contenido.ts"
   },
   "dependencies": {
     "docx": "9.16.1",
-    "jszip": "3.10.2",
-    "marked": "18.3.0"
+    "jszip": "3.10.2"
   },
   "devDependencies": {
     "@types/node": "26.6.11",

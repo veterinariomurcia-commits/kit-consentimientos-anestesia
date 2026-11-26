@@ -69,3 +69,26 @@ Por qué: Sira acepta que su correo sea visible cuando el repositorio sea públi
 
 **D17 · Word sirve para convertir a PDF; LibreOffice sigue haciendo falta.**
 Word, que ya está instalado, puede convertir las muestras a PDF en las revisiones. LibreOffice se necesita en T5 y T7 porque muchas clínicas lo usan y hay que comprobar que el documento no se descuadra en él.
+
+## Decisiones de la tarea T2 (26/11/2026)
+
+**D18 · Lector propio en lugar de `marked`; `marked` desinstalado.** (Cierra la D14.)
+Por qué: casi todas las marcas de `contenido/` son propias (`:::`, `::`, `[linea]`, `[firma: …]`), y del markdown normal solo usamos títulos, listas, tablas sencillas, negrita y cursiva. Un lector propio es más corto y claro que enseñarle a `marked` nuestras marcas, y es una pieza menos que mantener.
+
+**D19 · El lector recibe el texto, no el archivo.** Está en `src/contenido/` (`tipos.ts`, `lector.ts` y `variables.ts`) y no usa nada propio de Node.
+Por qué: así el mismo código sirve en la web (navegador) y en los scripts de muestras (Node), como pide CLAUDE.md. Cada lado carga el texto a su manera.
+
+**D20 · El lector es estricto: si algo no encaja, avisa y no se lo salta.** Reúne todos los problemas con su número de línea (bloque `:::` sin cerrar o desconocido, marca o variable que no existe, negrita sin cerrar, tabla con columnas de más, cabecera incompleta, la palabra "mascota"…) y los muestra juntos.
+Por qué: un error en el texto debe verse antes de publicar, no aparecer como un hueco raro en el Word de otra clínica.
+
+**D21 · Textos de los huecos cuando falta un dato:** `[Nombre de la clínica]`, `[Razón social]`, `[CIF]`, `[Dirección]`, `[Localidad]`, `[Teléfonos]`, `[Correo electrónico]`, `[Correo de protección de datos]` y `[Web]`. Un campo con solo espacios cuenta como vacío. La razón social vacía usa el nombre comercial y el correo de privacidad vacío usa el correo general; solo si también faltan sale el hueco.
+Por qué: la clínica entiende mejor "[Correo electrónico]" que el nombre técnico de la variable.
+
+**D22 · Varias líneas seguidas forman un solo párrafo, y un `[caja]` solo en su línea es un párrafo.** El generador (T4) decide cómo dibujar ese párrafo-caja.
+Por qué: es como funciona el markdown, y así el lector no tiene casos especiales.
+
+**D23 · Comando `npm run contenido`** (`scripts/ver-contenido.ts`): lee los 4 textos con la "Clínica Veterinaria Ejemplo" y con todos los datos vacíos, y muestra sus bloques y sus huecos. Con `npm run contenido -- informacion-neutra` muestra solo uno. Los datos de la clínica de ejemplo están de momento en ese script; en T3 se pueden pasar a un archivo compartido con `npm run muestras`.
+Por qué: sirve para comprobar el contenido cada vez que el equipo cambie un texto, sin generar el Word.
+
+**D24 · En la web, el campo de teléfonos se llamará "Teléfonos de contacto" y el WhatsApp será opcional.** (Se aplica en T6.) Ejemplo en gris dentro del campo: "968 000 000 · WhatsApp 600 000 000 (el WhatsApp es opcional)".
+Por qué: los textos solo usan `{{TELEFONOS}}` y ponen tal cual lo que escriba la clínica, sin mencionar WhatsApp. Si el campo se llamara "Teléfono(s) y WhatsApp", una clínica sin WhatsApp podría pensar que es obligatorio.
