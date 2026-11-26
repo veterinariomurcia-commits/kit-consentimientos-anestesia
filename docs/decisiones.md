@@ -45,7 +45,7 @@ Por qué: los controles de contenido se rompen o desaparecen en Google Docs y Li
 - [ ] **Licencia** de uso (por ejemplo, Creative Commons que permita usar y adaptar, pero no vender). Ojo: las licencias que exigen citar la autoría chocan con la decisión D7 de no poner "cortesía de" en el pie.
 - [ ] **Revisión de la versión cálida** por el equipo veterinario, sobre todo "tutor/a" en lugar de "titular" en las partes legales.
 - [ ] **Revisión legal** del texto genérico antes de compartirlo (asesoría o proveedor de protección de datos).
-- [ ] **Color por defecto** de la herramienta.
+- [ ] **Color por defecto** de la herramienta. (Provisional para las muestras: azul petróleo #2E6A80, ver D29.)
 - [ ] **Nombre y dirección de la web** (por ejemplo, un subdominio propio o la dirección de GitHub).
 - [ ] **Firma digital online** (Autografus u otras plataformas): los Word ya se pueden convertir a PDF y subir a esas plataformas. Falta decidir si se añade al `LEEME.txt` una guía breve (rellenar casillas y huecos en Word antes de pasar a PDF) y si conviene dejar más espacio en los recuadros de firma.
 - [ ] **Guardar los consentimientos firmados**: propuesta de NO hacerlo en la herramienta (ver la conversación de T1). Lo guarda cada clínica en su plataforma de firma, su programa de gestión o su nube.
@@ -92,3 +92,41 @@ Por qué: sirve para comprobar el contenido cada vez que el equipo cambie un tex
 
 **D24 · En la web, el campo de teléfonos se llamará "Teléfonos de contacto" y el WhatsApp será opcional.** (Se aplica en T6.) Ejemplo en gris dentro del campo: "968 000 000 · WhatsApp 600 000 000 (el WhatsApp es opcional)".
 Por qué: los textos solo usan `{{TELEFONOS}}` y ponen tal cual lo que escriba la clínica, sin mencionar WhatsApp. Si el campo se llamara "Teléfono(s) y WhatsApp", una clínica sin WhatsApp podría pensar que es obligatorio.
+
+## Decisiones de la tarea T3 (26/11/2026)
+
+**D25 · El generador está en `src/generador/` y no usa nada propio de Node.** `generador.ts` (montaje del documento), `estilos.ts` (estilos de Word y listas), `color.ts` (colores) e `imagen.ts` (tamaño del logo). Devuelve el Word como bytes: los scripts los guardan en disco y la web los meterá en el ZIP.
+Por qué: así el mismo código sirve en la web y en `npm run muestras`, como pide CLAUDE.md (igual que el lector, D19).
+
+**D26 · La cabecera con el logo y los datos va al principio del cuerpo de la primera página, no en la zona de "encabezado" de Word.** Es una tabla sin bordes de dos celdas (logo a la izquierda y datos a la derecha) con una línea del color de la clínica debajo. Las demás páginas no llevan cabecera, como en la referencia.
+Por qué: las tablas e imágenes dentro del encabezado de Word son lo que peor aguanta Google Docs, y así la clínica cambia el logo o los datos como cualquier otro texto. Se comprobará en T7.
+
+**D27 · Qué datos lleva la cabecera:** el nombre comercial en negrita; la dirección; "Tel." y los teléfonos; el correo y la web; la razón social y el CIF. La web es opcional: si está vacía, no se pone ni el hueco. La razón social solo se pone si es distinta del nombre comercial. Si falta cualquier otro dato, sale su hueco amarillo.
+Por qué: muchas clínicas no tienen web, y un hueco amarillo de `[Web]` en la cabecera parecería un error. El CIF sí debe estar, así que su hueco se queda.
+
+**D28 · Logo como mucho de 5 cm de ancho y 2,6 cm de alto, sin deformarlo.** Se ajusta al recuadro hasta tocar el ancho o el alto máximo; un logo pequeño también se amplía para que todos se vean de un tamaño parecido. El tamaño se lee directamente del archivo PNG o JPG, sin instalar nada.
+
+**D29 · Colores calculados a partir del color de la clínica.** Fondo suave de los recuadros: 10 % del color y 90 % de blanco. Filas alternas de las tablas: 4 % del color. Texto de las cabeceras de tabla: blanco si el contraste con el color es de al menos 4,5 (la pauta de accesibilidad WCAG); si no, texto casi negro (#262626). Color provisional de las muestras: **azul petróleo #2E6A80**, aprobado por Sira.
+Por qué: así la clínica elige un solo color y todo combina. El 4,5 es el contraste mínimo recomendado para leer texto normal.
+
+**D30 · Los datos que faltan llevan el estilo "Dato pendiente" y, además, el resaltado amarillo directo en el texto.**
+Por qué: en las pruebas, LibreOffice no mostraba el amarillo que venía solo en el estilo (y Google Docs tampoco suele hacerlo). Es la única excepción a "todo con estilos": es una marca provisional que la clínica borra al rellenar el dato.
+
+**D31 · Las tablas tienen anchos fijos en "twips" (la medida interna de Word), calculados a partir de porcentajes del ancho de la página.** Cada columna se reparte según su texto más largo, con un mínimo del 10 %. Las filas no se parten entre páginas, y la fila de cabecera se repite si la tabla continúa en la página siguiente.
+Por qué: Google Docs ignora los anchos guardados directamente como porcentaje y descuadra la tabla.
+
+**D32 · El párrafo que va justo después de una tabla o de un recuadro lleva 6 pt de espacio por encima.**
+Por qué: Word no deja espacio debajo de las tablas, y el texto quedaba pegado al recuadro. Los títulos no lo necesitan porque ya traen su espacio.
+
+**D33 · El salto de página se aplica como "salto de página antes" en el párrafo siguiente**, en lugar de añadir un párrafo vacío.
+Por qué: así no queda una línea en blanco arriba de la página nueva. Si lo siguiente es una tabla, se usa un salto normal.
+
+**D34 · Si un texto usa un elemento de la T4** (casillas, huecos, cajas, firmas o tabla de datos), el generador se para con un mensaje claro ("llega en la tarea T4") en lugar de dibujarlo mal. Por eso en T3 `npm run muestras` genera solo el documento informativo: `informacion-neutra.docx`, `informacion-calida.docx` e `informacion-neutra-datos-vacios.docx` (todos los datos vacíos y sin logo).
+
+**D35 · La versión del modelo ("v1.0") está en `VERSION_MODELO`, en `src/generador/generador.ts`.** Cuando cambie el contenido (ver `buenas-practicas.md`), se cambia ahí.
+
+**Pendiente para T5 (revisión visual):**
+- ⚠️ REVISAR: el documento informativo ocupa 4 páginas (la referencia ocupa 3) y la cuarta queda casi vacía. Habrá que ajustar márgenes, tamaños o espacios comparando con la referencia.
+- En el último recuadro, "¿Tiene alguna duda?" y el texto siguiente salen en la misma línea, porque en `contenido/` están en líneas seguidas y forman un solo párrafo (D22). Hay que decidir si se separan.
+
+**Pendiente para T6 (web):** con colores muy claros (por ejemplo, un amarillo), los títulos de apartado se leen mal sobre el blanco. Conviene que el selector avise o que solo ofrezca colores con contraste suficiente.

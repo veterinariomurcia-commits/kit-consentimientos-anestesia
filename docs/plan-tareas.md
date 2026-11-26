@@ -18,9 +18,9 @@ Crear el proyecto Vite + TypeScript, instalar `docx`, `jszip` y `marked`, prepar
 Leer los 4 archivos de `contenido/` (cabecera + bloques `:::` + elementos `[ ]`, `[linea]`, `{{VARIABLE}}`…) y convertirlos en una estructura intermedia que el generador pueda recorrer. Sustituir las variables (o dejar el hueco amarillo si están vacías).
 **Comprobación:** un script muestra por pantalla la lista de bloques de cada documento sin errores. → `npm run contenido`
 
-## T3 · Generador Word: base [ ]
+## T3 · Generador Word: base [x]
 Estilos (Normal, Título 1 y 2, listas), página A4 y márgenes, cabecera con logo y datos, pie con versión e iniciales y "Página X de Y", títulos, párrafos, listas, tablas normales y recuadros destacados y notas.
-**Comprobación:** `npm run muestras` genera el documento informativo (versión neutra) y se abre bien en Word.
+**Comprobación:** `npm run muestras` genera el documento informativo (versión neutra) y se abre bien en Word. → También genera la versión cálida y una muestra con los datos vacíos.
 
 ## T4 · Generador Word: elementos de formulario [ ]
 Tabla de datos, casillas ☐, huecos de línea, cajas, recuadros de firma, tabla de pruebas, tabla de firmas y recuadro de revocación.

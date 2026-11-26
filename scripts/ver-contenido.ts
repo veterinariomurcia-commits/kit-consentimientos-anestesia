@@ -12,20 +12,9 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { ErrorContenido, leerContenido } from '../src/contenido/lector.ts';
-import type { Bloque, DatosClinica, Linea, Tramo } from '../src/contenido/tipos.ts';
+import type { Bloque, Linea, Tramo } from '../src/contenido/tipos.ts';
 import { DATOS_VACIOS } from '../src/contenido/variables.ts';
-
-const CLINICA_EJEMPLO: DatosClinica = {
-  nombreClinica: 'Clínica Veterinaria Ejemplo',
-  razonSocial: 'Ejemplo Veterinaria S.L.',
-  cif: 'B00000000',
-  direccion: 'Calle Ejemplo 1, 00000 Ciudad Ejemplo',
-  localidad: 'Ciudad Ejemplo',
-  telefonos: '900 000 000 · WhatsApp 600 000 000',
-  email: 'hola@clinica-ejemplo.es',
-  emailPrivacidad: '',
-  web: 'www.clinica-ejemplo.es',
-};
+import { CLINICA_EJEMPLO } from '../src/muestras/clinica-ejemplo.ts';
 
 const carpeta = fileURLToPath(new URL('../contenido/', import.meta.url));
 const filtro = process.argv[2];
