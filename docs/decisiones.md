@@ -262,3 +262,28 @@ Por qué: decisión de Sira (la herramienta debe servir para las dos formas de t
 **D62 · El recuadro de "Preguntas planteadas… y respuestas del veterinario" mide 4 cm de alto (antes, 2,6 cm).** Es el único `[caja-grande]` de los textos. Es texto libre, sin límite de caracteres, y crece si se escribe más (alto mínimo). Por la D56, la tabla de firmas va siempre en la misma página que este recuadro.
 Por qué: Sira lo pidió para que haya sitio suficiente al escribir a mano. Sigue cabiendo en 6 páginas.
 Pendiente: en la T7, este recuadro será un campo de texto opcional del paso del paciente. En la T11, comprobar qué pasa si alguien escribe dentro más de una página, porque las filas de tabla no se parten entre páginas.
+
+## Decisiones de la tarea T6 · Bloques elegibles (26/11/2026)
+
+**D63 · Cada apartado se identifica por su número original en `contenido/`.** Es el mismo en la versión neutra y en la cálida, así que la elección de bloques sirve para las dos. El lector comprueba que los títulos `##` van numerados 1, 2, 3… sin saltos; si no, avisa del error (como la D20).
+Por qué: no hace falta añadir marcas nuevas a los títulos ni tocar el texto revisado.
+
+**D64 · Marca `[ref:N]` para las referencias a otros apartados (aplica la D58).** En `contenido/consentimiento-*.md` se cambió solo el número: "(ver apartado [ref:3])" y "queda anotado en el apartado [ref:1]". El generador pone el número que corresponda después de quitar bloques. El lector avisa si un `[ref:N]` apunta a un apartado que no existe. Aprobado por Sira.
+
+**D65 · Si se quita un apartado al que otro hace referencia:** sale un **aviso en pantalla** ("Cuidado: el apartado «Datos de identificación» hace referencia al apartado «Valoración del riesgo…», que has quitado"), y en el Word la referencia sale como **"[apartado quitado]" en amarillo**, igual que un dato que falta (D8).
+Por qué: Sira prefiere el aviso en pantalla (la web lo mostrará en la T8; `npm run muestras` lo muestra con ⚠). El amarillo en el Word es una red de seguridad: el texto revisado no se puede cambiar solo, y un número equivocado sería peor que un hueco visible.
+
+**D66 · Lo que nunca se quita:**
+- El texto que va antes del primer apartado (por ejemplo, el recuadro de introducción de la información).
+- La **protección de datos** (`::: letra-pequena`). Si se quita su apartado (el 7 del consentimiento), la nota se queda en su sitio, al final del apartado anterior que siga en el documento.
+Por qué: decisión de Sira. La protección de datos debe estar siempre en el consentimiento. (Completa la D57.)
+
+**D67 · Un salto de página que va justo antes de un título pertenece a ese apartado.** Si se quita el apartado, su salto también se quita; si se queda, sigue empezando en página nueva. Si un salto quedara al principio del documento, se quita, para no dejar la primera página casi vacía. Aprobado por Sira.
+Consecuencia vista en las muestras: al quitar el apartado 6, la página anterior al apartado 7 queda medio vacía, porque el 7 sigue empezando en página nueva. No es un error, pero se puede revisar más adelante.
+
+**D68 · Las funciones de los bloques están en `src/contenido/bloques.ts`** y no usan nada propio de Node (como la D19). `listarApartados` da la lista para la web; `revisarReferencias` da los avisos sin generar el Word (para que la web avise al marcar o desmarcar); `elegirApartados` quita, numera de nuevo y pone las referencias.
+`npm run muestras` genera 3 muestras nuevas (11 Word en total): `consentimiento-neutra-bloques-quitados.docx` (sin los apartados 2, 3 y 7: sale el aviso, la protección de datos se queda y el apartado de las firmas sigue empezando en página nueva; ocupa 4 páginas), `consentimiento-calida-bloques-quitados.docx` (sin el 6) e `informacion-calida-bloques-quitados.docx` (sin el 2 y el 4). Comprobado en PDF: los números y la referencia en amarillo salen bien, y cada firma sigue con su texto.
+
+**Pendiente:**
+- ⚠️ REVISAR: "…firmando el apartado de revocación" (apartado 7 del consentimiento) se refiere al recuadro de revocación del apartado 8. Como no lleva número, no se avisa si se quita el apartado 8. Se puede explicar en la web en la T8.
+- Hecho: la marca `[ref:N]` está en la tabla de formato de `CLAUDE.md` (aprobado por Sira).

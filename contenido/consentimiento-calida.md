@@ -21,7 +21,7 @@ Te entregamos este documento con antelación para que puedas leerlo con calma y 
 - Microchip :: [linea]
 - Procedimiento previsto :: [linea]
 - Tipo de anestesia prevista :: [ ] Sedación [ ] General inhalatoria [ ] General intravenosa (TIVA) [ ] Locorregional [ ] Combinada
-- Clasificación ASA asignada (ver apartado 3) :: [ ] I [ ] II [ ] III [ ] IV [ ] V · [ ] Urgencia (E)
+- Clasificación ASA asignada (ver apartado [ref:3]) :: [ ] I [ ] II [ ] III [ ] IV [ ] V · [ ] Urgencia (E)
 - Riesgos particulares de tu peludo :: [caja]
 - Veterinario/a responsable y n.º de colegiado/a :: [linea]
 - Fecha y hora de entrega de este documento :: [linea]
@@ -66,7 +66,7 @@ Además del grado ASA, aumentan el riesgo: la edad muy joven o avanzada, la obes
 
 **Lo que dicen los estudios.** En un gran estudio británico (CEPSAF), el riesgo de muerte relacionada con la anestesia o la sedación en las 48 horas siguientes fue de aproximadamente 1 de cada 1.849 perros y 1 de cada 895 gatos sanos (0,05 % y 0,11 %), y subió a cerca de 1 de cada 75 en perros y gatos enfermos (ASA III–V, en torno al 1,3–1,4 %). Estudios internacionales más recientes, coordinados desde España, han registrado cifras globales de alrededor del 0,7 % en perros y del 0,6 % en gatos. La mayoría de estos fallecimientos ocurre en la fase de recuperación, en las horas posteriores al procedimiento.
 
-Estas cifras son orientativas: el riesgo real de tu peludo lo valora el veterinario y queda anotado en el apartado 1.
+Estas cifras son orientativas: el riesgo real de tu peludo lo valora el veterinario y queda anotado en el apartado [ref:1].
 
 ## 4. Riesgos y complicaciones posibles
 

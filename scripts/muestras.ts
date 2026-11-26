@@ -9,9 +9,13 @@
 //
 // Prueba de estrés: los 2 documentos con un nombre y unos datos muy largos y el logo apaisado
 // (marca/logo-apaisado.png), para comprobar que nada se descuadra.
+//
+// Bloques elegibles (T6): muestras con algunos apartados quitados. Si un apartado que se queda
+// hace referencia a otro que se ha quitado, el aviso sale en pantalla con ⚠.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { elegirApartados } from '../src/contenido/bloques.ts';
 import { ErrorContenido, leerContenido } from '../src/contenido/lector.ts';
 import type { DatosClinica } from '../src/contenido/tipos.ts';
 import { DATOS_VACIOS } from '../src/contenido/variables.ts';
@@ -50,6 +54,8 @@ interface Muestra {
   salida: string;
   datos: DatosClinica;
   logo: Logo | null;
+  /** Apartados que se quitan (número original en contenido/). Si no se pone, van todos. */
+  quitar?: number[];
 }
 
 const MUESTRAS: Muestra[] = [
@@ -71,6 +77,30 @@ const MUESTRAS: Muestra[] = [
     datos: CLINICA_ESTRES,
     logo: logoApaisado,
   },
+  // Sin el 2 y el 3 (el apartado 1 hace referencia al 3: sale el aviso) y sin el 7 (la protección
+  // de datos se queda; el apartado 8 sigue empezando en página nueva).
+  {
+    contenido: 'consentimiento-neutra',
+    salida: 'consentimiento-neutra-bloques-quitados.docx',
+    datos: CLINICA_EJEMPLO,
+    logo: logoEjemplo,
+    quitar: [2, 3, 7],
+  },
+  // Sin el 6: el 7 pasa a ser el 6 y sigue empezando en página nueva; las referencias no cambian.
+  {
+    contenido: 'consentimiento-calida',
+    salida: 'consentimiento-calida-bloques-quitados.docx',
+    datos: CLINICA_EJEMPLO,
+    logo: logoEjemplo,
+    quitar: [6],
+  },
+  {
+    contenido: 'informacion-calida',
+    salida: 'informacion-calida-bloques-quitados.docx',
+    datos: CLINICA_EJEMPLO,
+    logo: logoEjemplo,
+    quitar: [2, 4],
+  },
 ];
 
 let hayErrores = false;
@@ -78,10 +108,14 @@ for (const m of MUESTRAS) {
   const archivo = `${m.contenido}.md`;
   try {
     const texto = readFileSync(new URL(`contenido/${archivo}`, raiz), 'utf8');
-    const documento = leerContenido(texto, m.datos, archivo);
+    const leido = leerContenido(texto, m.datos, archivo);
+    const { documento, avisos } = elegirApartados(leido, m.quitar ?? []);
     const bytes = await generarWord(documento, { datos: m.datos, color: COLOR_POR_DEFECTO, logo: m.logo });
     writeFileSync(`${carpetaSalida}${m.salida}`, bytes);
-    console.log(`✔ salida/${m.salida}  (${Math.round(bytes.length / 1024)} KB)`);
+    const n = m.quitar?.length ?? 0;
+    const quitados = n === 0 ? '' : `  · sin ${n === 1 ? 'el apartado' : 'los apartados'} ${m.quitar!.join(', ')}`;
+    console.log(`✔ salida/${m.salida}  (${Math.round(bytes.length / 1024)} KB)${quitados}`);
+    for (const a of avisos) console.log(`   ⚠ ${a.mensaje}`);
   } catch (e) {
     hayErrores = true;
     if (e instanceof ErrorContenido || e instanceof ErrorGenerador) console.error(`✘ ${m.salida}: ${e.message}`);

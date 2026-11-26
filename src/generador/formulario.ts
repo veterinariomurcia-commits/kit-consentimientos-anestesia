@@ -53,6 +53,7 @@ function anchoTramo(t: Tramo, tamanoPt: number, enCelda: boolean): number {
   switch (t.tipo) {
     case 'texto':
     case 'dato':
+    case 'referencia':
       return t.texto.length * (t.negrita ? EM_LETRA_NEGRITA : EM_LETRA) * em(tamanoPt);
     case 'casilla':
       return EM_CASILLA * em(tamanoPt);

@@ -67,9 +67,67 @@ export function leerContenido(texto: string, datos: DatosClinica, archivo = 'con
   const { cabecera, primeraLineaCuerpo } = leerCabecera(lineas, error);
   const lector = new LectorCuerpo(datos, error);
   const bloques = lector.leerBloques(lineas.slice(primeraLineaCuerpo), false);
+  for (const mensaje of revisarApartados(bloques)) errores.push(`${archivo}: ${mensaje}`);
 
   if (errores.length > 0) throw new ErrorContenido(errores);
   return { cabecera: cabecera as Cabecera, bloques };
+}
+
+// ---------------------------------------------------------------------------
+// Apartados y referencias
+// ---------------------------------------------------------------------------
+
+/** "3. Título" → 3. Si el título no empieza por un número, null. */
+export function numeroDeTitulo(contenido: Linea): number | null {
+  const primero = contenido[0];
+  const m = primero?.tipo === 'texto' ? /^(\d+)\.\s/.exec(primero.texto) : null;
+  return m ? Number(m[1]) : null;
+}
+
+/** Todas las líneas de texto de un bloque (también las de dentro de tablas y recuadros). */
+export function lineasDeBloque(b: Bloque): Linea[] {
+  switch (b.tipo) {
+    case 'titulo1':
+    case 'titulo2':
+    case 'parrafo':
+      return [b.contenido];
+    case 'lista':
+      return b.elementos;
+    case 'tabla-datos':
+      return b.filas.flatMap((f) => [f.etiqueta, f.contenido]);
+    case 'tabla':
+      return [b.cabecera, ...b.filas].flat();
+    case 'salto-de-pagina':
+      return [];
+    default:
+      return b.bloques.flatMap(lineasDeBloque);
+  }
+}
+
+/**
+ * Comprueba que los títulos "##" van numerados 1, 2, 3… sin saltos (el número es lo que
+ * identifica a cada apartado al quitar bloques) y que cada [ref:N] apunta a un apartado que existe.
+ */
+function revisarApartados(bloques: Bloque[]): string[] {
+  const errores: string[] = [];
+  let esperado = 1;
+  for (const b of bloques) {
+    if (b.tipo !== 'titulo1') continue;
+    const n = numeroDeTitulo(b.contenido);
+    const texto = b.contenido.map((t) => ('texto' in t ? t.texto : '')).join('');
+    if (n === null) errores.push(`el título "## ${texto}" debe empezar por su número, por ejemplo "## ${esperado}. …".`);
+    else if (n !== esperado) errores.push(`el título "## ${texto}" debería llevar el número ${esperado}.`);
+    esperado++;
+  }
+  const total = esperado - 1;
+  for (const linea of bloques.flatMap(lineasDeBloque)) {
+    for (const t of linea) {
+      if (t.tipo === 'referencia' && (t.apartado < 1 || t.apartado > total)) {
+        errores.push(`"[ref:${t.apartado}]" apunta a un apartado que no existe (hay ${total}).`);
+      }
+    }
+  }
+  return errores;
 }
 
 // ---------------------------------------------------------------------------
@@ -333,7 +391,7 @@ class LectorCuerpo {
 
     // Marcas que reconoce el lector, en orden de prioridad.
     const marcas =
-      /\*\*|\*|\[ \]|\[linea\]|\[linea-corta\]|\[caja\]|\[caja-grande\]|\[firma:([^\]]*)\]|\{\{([^}]*)\}\}|\[[a-z][a-z-]*(?::[^\]]*)?\]/g;
+      /\*\*|\*|\[ \]|\[linea\]|\[linea-corta\]|\[caja\]|\[caja-grande\]|\[firma:([^\]]*)\]|\{\{([^}]*)\}\}|\[ref: *(\d+) *\]|\[[a-z][a-z-]*(?::[^\]]*)?\]/g;
     let desde = 0;
     for (const m of texto.matchAll(marcas)) {
       ponerTexto(texto.slice(desde, m.index));
@@ -359,10 +417,14 @@ class LectorCuerpo {
         } else {
           this.error(n, `la variable "{{${nombre}}}" no existe. Las válidas son: ${VARIABLES.join(', ')}.`);
         }
+      } else if (m[3] !== undefined) {
+        const apartado = Number(m[3]);
+        tramos.push({ tipo: 'referencia', apartado, texto: String(apartado), quitado: false, ...formato });
       } else {
         this.error(
           n,
-          `la marca "${marca}" no existe. Las válidas son: [ ], [linea], [linea-corta], [caja], [caja-grande] y [firma: Texto].`,
+          `la marca "${marca}" no existe. Las válidas son: [ ], [linea], [linea-corta], [caja], [caja-grande], ` +
+            '[firma: Texto] y [ref:N].',
         );
       }
     }

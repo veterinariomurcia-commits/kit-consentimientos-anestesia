@@ -251,6 +251,14 @@ function lineaARuns(linea: Linea, medida: Medida): ParagraphChild[] {
           italics: t.cursiva || undefined,
           ...marcaPendiente(t.vacio),
         });
+      case 'referencia':
+        // Número de otro apartado; si ese apartado se ha quitado, "[apartado quitado]" en amarillo.
+        return new TextRun({
+          text: t.texto,
+          bold: t.negrita || undefined,
+          italics: t.cursiva || undefined,
+          ...marcaPendiente(t.quitado),
+        });
       case 'casilla':
         return runCasilla();
       case 'linea-corta':
@@ -278,7 +286,7 @@ const marcaPendiente = (vacio: boolean) =>
 
 /** Texto plano de una línea, solo para calcular el ancho de las columnas. */
 const textoPlano = (linea: Linea): string =>
-  linea.map((t) => (t.tipo === 'texto' || t.tipo === 'dato' ? t.texto : '··········')).join('');
+  linea.map((t) => (t.tipo === 'texto' || t.tipo === 'dato' || t.tipo === 'referencia' ? t.texto : '··········')).join('');
 
 /** Separación entre una tabla y el párrafo normal que la sigue (6 pt). Los títulos ya traen la suya. */
 const AIRE_TRAS_TABLA = 120;

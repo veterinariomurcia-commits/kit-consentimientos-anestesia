@@ -49,6 +49,12 @@ export type Tramo =
    * y el generador debe resaltarlo en amarillo.
    */
   | ({ tipo: 'dato'; variable: Variable; texto: string; vacio: boolean } & Formato)
+  /**
+   * [ref:N] → número de otro apartado ("ver apartado 3"). `apartado` es el número original
+   * del texto de contenido/. Al elegir los apartados (bloques.ts), `texto` pasa a ser el número
+   * nuevo; si ese apartado se ha quitado, `quitado` = true y el generador lo resalta en amarillo.
+   */
+  | ({ tipo: 'referencia'; apartado: number; texto: string; quitado: boolean } & Formato)
   /** [ ] → casilla ☐ */
   | { tipo: 'casilla' }
   /** [linea] → hueco que ocupa el resto de la línea o celda */

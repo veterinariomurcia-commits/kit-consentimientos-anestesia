@@ -32,9 +32,9 @@ Convertir las muestras a PDF con LibreOffice, compararlas página a página con 
 
 > **Plan rehecho el 26/11/2026** (durante la T5), tras aclarar la idea de Sira: elegir bloques, datos del paciente opcionales, vista previa y descarga en Word o PDF (D57–D61). Las antiguas T6–T9 pasan a ser T8 y T11–T13.
 
-## T6 · Bloques elegibles [ ]
+## T6 · Bloques elegibles [x]
 Cada apartado (`## …`) de `contenido/` es un bloque que se puede quitar. El generador recibe la lista de bloques elegidos, se salta los demás y renumera los apartados. Las referencias a otros apartados ("ver apartado 3") pasan a ser marcas que el generador rellena con el número correcto (D58; solo cambia el número, no el texto). Si se quita un apartado al que otro hace referencia, el generador lo avisa (la web lo mostrará en la T8).
-**Comprobación:** `npm run muestras` genera además una muestra con varios bloques quitados; los números y las referencias salen bien, y la firma sigue con su texto.
+**Comprobación:** `npm run muestras` genera además una muestra con varios bloques quitados; los números y las referencias salen bien, y la firma sigue con su texto. → Genera 11 Word: 3 nuevos con bloques quitados y el aviso ⚠ en pantalla (D63–D68).
 
 ## T7 · Datos del paciente (opcionales) [ ]
 Dar un nombre a cada hueco y casilla del consentimiento (titular, DNI, paciente, especie, peso, tipo de anestesia…). Si el campo tiene valor, el Word lleva el dato (y la casilla marcada ☒); si no, sale el hueco como ahora. Los datos del paciente no se guardan en ningún sitio (D60).

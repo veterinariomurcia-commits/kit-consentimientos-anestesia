@@ -111,6 +111,7 @@ Elementos del cuerpo:
 | `[caja-grande]` | Recuadro para escribir (unas 5 líneas) |
 | `[firma: Texto]` | Recuadro de firma con borde discontinuo y el texto pequeño en gris abajo |
 | `{{VARIABLE}}` | Dato de la clínica (ver la tabla de variables) |
+| `[ref:N]` | Número del apartado N ("ver apartado [ref:3]"). Si se quitan apartados, sale el número nuevo; si se quita el apartado N, sale "[apartado quitado]" en amarillo y la web avisa (D64, D65). Los títulos `##` deben ir numerados 1, 2, 3… sin saltos |
 
 ### Variables de la clínica
 

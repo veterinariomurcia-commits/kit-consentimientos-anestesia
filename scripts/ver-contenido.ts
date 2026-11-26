@@ -36,6 +36,8 @@ function tramoATexto(t: Tramo): string {
       return t.negrita ? `**${t.texto}**` : t.cursiva ? `*${t.texto}*` : t.texto;
     case 'dato':
       return t.vacio ? `«${t.texto}»` : `‹${t.texto}›`;
+    case 'referencia':
+      return `{ref:${t.apartado}}`;
     case 'casilla':
       return '☐';
     case 'linea':
@@ -112,7 +114,9 @@ function buscarHuecos(bloques: Bloque[]): string[] {
 // --- Lectura de los documentos ---
 
 let hayErrores = false;
-console.log('Leyenda: ‹dato de la clínica›   «hueco vacío, saldrá en amarillo»   ☐ casilla\n');
+console.log(
+  'Leyenda: ‹dato de la clínica›   «hueco vacío, saldrá en amarillo»   ☐ casilla   {ref:N} número del apartado N\n',
+);
 
 for (const archivo of archivos) {
   const texto = readFileSync(`${carpeta}${archivo}`, 'utf8');
