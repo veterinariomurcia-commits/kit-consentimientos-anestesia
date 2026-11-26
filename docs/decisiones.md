@@ -45,7 +45,7 @@ Por qué: los controles de contenido se rompen o desaparecen en Google Docs y Li
 - [ ] **Licencia** de uso (por ejemplo, Creative Commons que permita usar y adaptar, pero no vender). Ojo: las licencias que exigen citar la autoría chocan con la decisión D7 de no poner "cortesía de" en el pie.
 - [ ] **Revisión de la versión cálida** por el equipo veterinario, sobre todo "tutor/a" en lugar de "titular" en las partes legales.
 - [ ] **Revisión legal** del texto genérico antes de compartirlo (asesoría o proveedor de protección de datos).
-- [ ] **Color por defecto** de la herramienta. (Provisional para las muestras: azul petróleo #2E6A80, ver D29.)
+- [x] **Color por defecto** de la herramienta: azul petróleo #2E6A80 (D29, D76).
 - [ ] **Nombre y dirección de la web** (por ejemplo, un subdominio propio o la dirección de GitHub).
 - [ ] **Firma digital online** (Autografus u otras plataformas): los Word ya se pueden convertir a PDF y subir a esas plataformas. Falta decidir si se añade al `LEEME.txt` una guía breve (rellenar casillas y huecos en Word antes de pasar a PDF) y si conviene dejar más espacio en los recuadros de firma.
 - [ ] **Guardar los consentimientos firmados**: propuesta de NO hacerlo en la herramienta (ver la conversación de T1). Lo guarda cada clínica en su plataforma de firma, su programa de gestión o su nube.
@@ -315,3 +315,51 @@ Además, si un Word de `salida/` está abierto en Word, `npm run muestras` avisa
 **Pendiente:**
 - T8: en la web, agrupar las casillas que van juntas (perro/gato, tipo de anestesia, ASA…) y escribir una etiqueta clara para cada campo, a partir del contexto que da `listarCampos`.
 - T11: qué pasa si se escribe más de una página en un recuadro (ya estaba en la D62; ahora también se puede escribir desde la web).
+
+## Decisiones de la tarea T8 · Interfaz web (26/11/2026)
+
+**D74 · Los 4 pasos en una sola página, uno debajo de otro** (aprobado por Sira). Por qué: es más sencillo, se vuelve atrás con solo subir y funciona mejor con lectores de pantalla que un asistente con "Siguiente" y "Atrás".
+
+**D75 · Diseño de la web: opción A, sobria, en azul petróleo (#2E6A80)**, con fondo gris muy claro y los pasos en tarjetas blancas. Sin fuentes externas: se usa la letra del sistema (Segoe UI en Windows). Sira comparó dos maquetas (A sobria y B con su naranja #EC6907) y eligió la A.
+
+**D76 · Colores sugeridos para los documentos (opción A):** azul petróleo #2E6A80 (el de por defecto), verde bosque #2F6B4F, azul marino #2B4C7E, granate #8A2E3B, morado #5B4A8A y gris pizarra #4A5562, más "Otro color" con el selector del navegador. Todos tienen contraste de al menos 4,5 con el blanco. Si se elige otro color más claro, la web avisa de que los títulos se leerán peor, pero deja usarlo (cierra el pendiente de la T3). Resuelve el "color por defecto" de "Pendiente de decidir": azul petróleo.
+
+**D77 · Logo de Clínica Veterinaria Murcia Norte en la web, con "Herramienta gratuita cortesía de Clínica Veterinaria Murcia Norte" en el pie de la página.** Los documentos siguen sin "cortesía de" (D7 sigue vigente). Se usan `src/web/recursos/logo-cvmn.svg` (logo completo, en la cabecera sobre un recuadro blanco y en el pie) y `marca-cvmn.svg` (perro y gato, como icono de la pestaña). Son copias de `marca/logos-CVMN/` sin el bloque de metadatos interno (no se ve y ocupaba casi la mitad del archivo). La carpeta `marca/logos-CVMN/` (originales de imprenta) está en `.gitignore`: no se sube a GitHub.
+
+**D78 · Recordar los datos de la clínica, solo si se pide** (aprobado por Sira). Casilla "Recordar los datos de mi clínica en este navegador", desmarcada al principio, y botón "Olvidar los datos guardados". Se guardan en `localStorage` (clave `kit-consentimientos-anestesia:clinica`): datos de la clínica, logo, color y versión. Nunca los del paciente ni los apartados elegidos. Si el logo no cabe en el almacén, se recuerda todo menos el logo, y se avisa. Código en `src/web/recordar.ts`.
+
+**D79 · Logo de 2 MB como máximo, con un aviso claro** (aprobado por Sira): "Tu logo pesa X MB y el máximo es 2 MB. No es un fallo de la herramienta: el límite es para que el Word no pese demasiado…". Si el archivo no es PNG ni JPG (SVG, PDF, WEBP…), se dice que lo guarde antes como PNG o JPG.
+
+**D80 · Paso 3 (paciente): los 72 campos en 6 grupos que se abren y se cierran**, con etiquetas sacadas del propio documento (`src/web/etiquetas-campos.ts`): el titular y el paciente; el procedimiento y la anestesia; pruebas preanestésicas (como una tabla de casillas); anestesias previas y medicación; alternativas y decisiones; declaración y firmas. Las etiquetas dicen "titular" o "tutor/a" según la versión. Solo se muestran los campos de los apartados que se quedan. Si en `contenido/` aparece un campo nuevo sin etiqueta, la web lo muestra en "Otros datos" con el texto de alrededor, así un cambio de texto no rompe la web.
+Los datos del paciente solo están en la memoria de la página (D60). El formulario lleva `autocomplete="off"` para que el navegador tampoco los recuerde por su cuenta, y hay un botón "Vaciar datos del paciente".
+
+**D81 · Avisos del paso 2:** los de las referencias (D65); el de la revocación (cierra el pendiente de la D68: si se quita el apartado con el recuadro de revocación y se deja el que dice "firmando el apartado de revocación", se avisa; se busca por el texto y por el campo `revocacion-fecha-hora`, no por el número); y si se quitan todos los apartados de un documento.
+
+**D82 · La descarga:** antes de fabricar nada, comprueba los 5 datos obligatorios y que los correos tengan forma de correo. Si falta algo, sale un recuadro rojo con la lista y un enlace a cada campo. El ZIP se llama `kit-anestesia-<nombre-de-la-clinica>.zip` y lleva `consentimiento-anestesia.docx`, `informacion-anestesia.docx` y `LEEME.txt` (`src/web/leeme.ts`: qué hay, los apartados quitados, cómo revisar los amarillos, el aviso legal y, si lleva datos del paciente, que se guarde con el cuidado de la historia clínica). El LEEME no habla todavía de la firma digital, porque sigue en "Pendiente de decidir".
+
+**D83 · Organización del código de la web en `src/web/`:** `contenidos.ts` (los 4 textos metidos en la web con `?raw` de Vite), `estado.ts` (lo elegido, en un solo sitio), `dom.ts` (ayudas), `paso-clinica.ts`, `paso-bloques.ts`, `paso-paciente.ts`, `etiquetas-campos.ts`, `paso-descarga.ts`, `leeme.ts`, `recordar.ts` y `estilos.css`. Fabrica los Word con el mismo lector y generador que `npm run muestras`.
+
+**Comprobado en T8** con Edge sin ventana, manejado desde un script de prueba temporal (no se queda en el proyecto): descargar sin datos (sale la lista de lo que falta), logo de 3,1 MB (sale el aviso), logo bueno, granate, versión cálida, apartados quitados (sale el aviso), datos del paciente, "Recordar" (no guarda nada del paciente), recargar (vuelve todo menos el paciente) y "Olvidar". El ZIP descargado se convirtió a PDF con LibreOffice: consentimiento de 6 páginas e información de 3, con los datos del paciente, el color y la referencia quitada en amarillo. A 390 px de ancho (móvil) no hay que deslizar de lado. `npm run build` y `npm run muestras` sin errores.
+
+**Cambios tras la revisión de Sira:** el pie de la web dice ahora "…cortesía de Clínica Veterinaria Murcia Norte para las clínicas y hospitales asociados a VetFamily". Se quita el contador de datos rellenados de cada grupo del paciente (a Sira no le gusta). La vista previa del logo ya no se sale de su recuadro cuando el logo es cuadrado.
+
+**D84 · Casillas excluyentes en el paso del paciente** (pedido por Sira). En estos grupos solo puede haber una casilla marcada; al marcar otra, la anterior se desmarca sola, y volver a hacer clic en la marcada la desmarca (la pregunta puede quedar en blanco): especie (perro / gato); ASA del I al V (la «Urgencia (E)» va aparte, porque se añade al grado); en cada prueba, «Acepta» y «Rechaza» (la «Recomendada» va aparte); ¿anestesia antes?; ¿medicación?; ampliación del procedimiento; y reanimación. Las casillas siguen viéndose cuadradas. Solo es en la web: en el Word las casillas siguen libres, por si se marcan a mano. La lista está en `EXCLUYENTES` (`src/web/etiquetas-campos.ts`).
+Por qué: evitar errores de clic en preguntas que solo admiten una respuesta.
+
+**D85 · Ajustes del paso 3 y del color tras la revisión de Sira:**
+- En las etiquetas de la web se dice **"responsable"** (versión neutra) o **"tutor/a"** (cálida), nunca "titular". Los documentos no cambian: el texto revisado sigue diciendo "titular".
+- Nombre y n.º de colegiado del veterinario, fecha y hora de la firma del responsable, y fecha y hora de la firma del veterinario van por parejas en la misma línea (en el móvil, una debajo de otra).
+- Selector de "Otro color": mientras se arrastra, solo cambia el circulito; el color, el aviso de color claro y el guardado se aplican al soltar. Por qué: cualquier cambio en la página durante el arrastre (por ejemplo, el aviso de color claro que aparece y desaparece) hacía que el navegador cerrara el selector a medio elegir.
+
+**D86 · Sin casilla de iniciales en el pie del consentimiento** (pedido por Sira: en veterinaria no se usa). Se ha puesto `iniciales_en_pie: no` en la cabecera de `contenido/consentimiento-neutra.md` y `consentimiento-calida.md`; el texto no cambia. El generador sigue sabiendo dibujarla por si algún día hace falta. El pie queda: "Consentimiento de anestesia y sedación · Modelo v1.0" y "Página X de Y". Comprobado: todas las muestras siguen con las mismas páginas (consentimientos de 6; 4 el de bloques quitados). Deja sin efecto la D54 y la parte de la regla 9 de `CLAUDE.md` sobre las iniciales (actualizada).
+
+**D87 · Nunca "titular": "responsable legal" en la versión neutra** (pedido por Sira, que lo decide como directora del proyecto; amplía la D85). En la web: etiquetas del paso 3, descripción de la versión neutra («paciente» y «responsable legal») y `LEEME.txt`. En los textos: `contenido/consentimiento-neutra.md` e `informacion-neutra.md`, "titular o responsable legal" pasa a "responsable legal" y cada "titular" suelto, también (subtítulos, tabla de datos, firma en caso de rechazo, declaración, preguntas, tabla de firmas, representación, revocación y la nota de la copia). Solo cambia esa palabra. La versión cálida ya decía "tutor/a". Los nombres internos de campo (`#titular`, `fecha-firma-titular`…) no se ven en el documento y se dejan igual, para no tocar la web ni las muestras. Comprobado: mismas páginas en todas las muestras.
+
+**D88 · Texto de presentación nuevo**, escrito por Sira: "Selecciona el estilo comunicativo, el color de los títulos y recuadros, tu logo y cumplimenta cada apartado… Está preparado para firmar online." ("el color de los títulos y recuadros" en lugar de "el color de los textos", porque el texto normal va en negro). Se mantiene detrás la frase "Todo se prepara aquí mismo, en tu navegador: no se envía nada a ningún sitio." Cuando llegue la T10 (PDF), habrá que revisar "o guardar como PDF".
+
+⚠️ REVISAR: el cambio de "titular" por "responsable legal" en los textos legales (D87) entra en la revisión legal pendiente (ver "Pendiente de decidir"): que la asesoría confirme el término.
+
+**Pendiente:**
+- T9: la vista previa irá en el paso 4, encima del botón de descarga.
+- T10: el botón "Descargar en PDF" irá junto al de Word.
+- T12: al publicar en GitHub Pages, comprobar la ruta base de Vite (la web irá en una subcarpeta de la dirección).

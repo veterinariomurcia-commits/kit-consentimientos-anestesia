@@ -4,7 +4,7 @@ variante: calida
 titulo: Consentimiento informado de anestesia y sedación
 subtitulo: Perros y gatos · Documento para el tutor/a o responsable legal de tu peludo
 pie: Consentimiento de anestesia y sedación
-iniciales_en_pie: Iniciales del tutor/a
+iniciales_en_pie: no
 ---
 
 ## 1. Datos de identificación

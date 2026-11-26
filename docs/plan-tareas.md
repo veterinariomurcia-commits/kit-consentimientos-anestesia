@@ -40,9 +40,9 @@ Cada apartado (`## …`) de `contenido/` es un bloque que se puede quitar. El ge
 Dar un nombre a cada hueco y casilla del consentimiento (titular, DNI, paciente, especie, peso, tipo de anestesia…). Si el campo tiene valor, el Word lleva el dato (y la casilla marcada ☒); si no, sale el hueco como ahora. Los datos del paciente no se guardan en ningún sitio (D60).
 **Comprobación:** `npm run muestras` genera además un consentimiento con datos de un paciente ficticio, y se ve bien junto al de los huecos en blanco. → Genera 13 Word: 2 nuevos con el paciente ficticio «Luna» (D69–D73).
 
-## T8 · Interfaz web [ ]
+## T8 · Interfaz web [x]
 Página en pasos: 1) la clínica (datos obligatorios, logo, color y versión; teléfonos con el WhatsApp opcional, D24), 2) los bloques, 3) el paciente (opcional), 4) la descarga en Word (ZIP con los 2 documentos y `LEEME.txt`). Aviso legal. Diseño sencillo, profesional, accesible y adaptado a móvil.
-**Comprobación:** con `npm run dev`, Sira hace los cuatro pasos y descarga un ZIP que se abre bien.
+**Comprobación:** con `npm run dev`, Sira hace los cuatro pasos y descarga un ZIP que se abre bien. → Probado de principio a fin en un navegador sin ventana (ordenador y móvil); el ZIP trae 2 Word (6 y 3 páginas) y el `LEEME.txt` (D74–D88).
 
 ## T9 · Vista previa [ ]
 Vista previa del documento en la propia página, antes de descargar. Es aproximada: un navegador no puede mostrar el Word exactamente como Word.

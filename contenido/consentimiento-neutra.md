@@ -2,9 +2,9 @@
 documento: consentimiento
 variante: neutra
 titulo: Consentimiento informado de anestesia y sedación
-subtitulo: Perros y gatos · Documento para el titular o responsable legal del paciente
+subtitulo: Perros y gatos · Documento para el responsable legal del paciente
 pie: Consentimiento de anestesia y sedación
-iniciales_en_pie: Iniciales del titular
+iniciales_en_pie: no
 ---
 
 ## 1. Datos de identificación
@@ -12,7 +12,7 @@ iniciales_en_pie: Iniciales del titular
 Este documento debe entregarse con antelación suficiente para que pueda leerlo con calma y preguntar todo lo que necesite antes de firmar. Su firma confirma que ha recibido esta información, que la ha entendido y que autoriza el procedimiento.
 
 ::: tabla-datos
-- Titular o responsable legal (nombre y apellidos) :: [linea#titular]
+- Responsable legal (nombre y apellidos) :: [linea#titular]
 - DNI/NIE :: [linea#dni]
 - Teléfono de contacto el día del procedimiento :: [linea#telefono]
 - Nombre del paciente :: [linea#paciente]
@@ -28,7 +28,7 @@ Este documento debe entregarse con antelación suficiente para que pueda leerlo 
 :::
 
 ::: nota
-Si quien acompaña al paciente es menor de 18 años, deben firmar sus padres o tutores. Si el titular no puede acudir, puede firmar otra persona en su nombre aportando una autorización escrita del titular para este procedimiento concreto y copia del DNI de ambos.
+Si quien acompaña al paciente es menor de 18 años, deben firmar sus padres o tutores. Si el responsable legal no puede acudir, puede firmar otra persona en su nombre aportando una autorización escrita del responsable legal para este procedimiento concreto y copia del DNI de ambos.
 :::
 
 ## 2. Qué es la anestesia y por qué siempre conlleva un riesgo
@@ -134,7 +134,7 @@ En la clínica aplicamos un protocolo anestésico basado en las guías internaci
 Si rechaza alguna prueba recomendada, declara que se le ha explicado que sin ella puede no detectarse una enfermedad que aumente el riesgo, y que asume ese mayor riesgo.
 
 ::: firma
-**Firma del titular en caso de rechazo:** [firma: Firma]
+**Firma del responsable legal en caso de rechazo:** [firma: Firma]
 :::
 
 ## 6. Su colaboración antes y después del procedimiento
@@ -199,7 +199,7 @@ Consecuencias de no realizar el procedimiento:
 
 ## 8. Declaración y firmas
 
-Yo, el/la titular o responsable legal arriba identificado/a, DECLARO que:
+Yo, el/la responsable legal arriba identificado/a, DECLARO que:
 
 1. He leído este documento con antelación suficiente y el veterinario me ha explicado verbalmente, en un lenguaje que he entendido, el procedimiento, el tipo de anestesia prevista, la clasificación de riesgo de mi perro o gato y sus riesgos particulares.
 2. Conozco los riesgos y complicaciones descritos, incluido el riesgo de fallecimiento, y entiendo que son **inherentes a la anestesia** y pueden presentarse aunque se actúe correctamente y con los medios adecuados.
@@ -210,12 +210,12 @@ Yo, el/la titular o responsable legal arriba identificado/a, DECLARO que:
 
 En consecuencia, **AUTORIZO** de forma libre y voluntaria la realización de la anestesia o sedación descrita, con las decisiones marcadas en este documento.
 
-**Preguntas planteadas por el titular y respuestas del veterinario:**
+**Preguntas planteadas por el responsable legal y respuestas del veterinario:**
 
 [caja-grande#preguntas]
 
 ::: tabla primera-columna-etiquetas
-|  | Titular o responsable legal | Veterinario/a responsable |
+|  | Responsable legal | Veterinario/a responsable |
 |---|---|---|
 | Nombre | [linea#titular] | [linea#veterinario-nombre] |
 | N.º de colegiado/a | — | [linea#veterinario-colegiado] |
@@ -223,14 +223,14 @@ En consecuencia, **AUTORIZO** de forma libre y voluntaria la realización de la 
 | Lugar, fecha y hora | {{LOCALIDAD}}, [linea-corta#fecha-firma-titular] a las [linea-corta#hora-firma-titular] | {{LOCALIDAD}}, [linea-corta#fecha-firma-veterinario] a las [linea-corta#hora-firma-veterinario] |
 :::
 
-[ ]#representacion Firma en representación del titular: se adjunta autorización escrita del titular para este procedimiento y copia del DNI de ambos.
+[ ]#representacion Firma en representación del responsable legal: se adjunta autorización escrita del responsable legal para este procedimiento y copia del DNI de ambos.
 
 ::: destacado
 **Revocación del consentimiento.** Revoco el consentimiento otorgado y no autorizo el procedimiento. He sido informado/a de las consecuencias de esta decisión.
 
-[firma: Firma del titular] Fecha y hora: [linea#revocacion-fecha-hora]
+[firma: Firma del responsable legal] Fecha y hora: [linea#revocacion-fecha-hora]
 :::
 
 ::: nota
-*Se entrega copia al titular. El original se archiva en la historia clínica del paciente.*
+*Se entrega copia al responsable legal. El original se archiva en la historia clínica del paciente.*
 :::

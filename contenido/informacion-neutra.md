@@ -2,7 +2,7 @@
 documento: informacion
 variante: neutra
 titulo: Información sobre la anestesia y la sedación
-subtitulo: Perros y gatos · Documento informativo para el titular o responsable legal del paciente
+subtitulo: Perros y gatos · Documento informativo para el responsable legal del paciente
 pie: Información sobre la anestesia y la sedación
 iniciales_en_pie: no
 ---

@@ -3,10 +3,201 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Herramienta gratuita para descargar, con los datos de tu clínica, el consentimiento informado y la información de anestesia y sedación en Word." />
+    <meta name="theme-color" content="#2E6A80" />
     <title>Kit de consentimientos de anestesia</title>
+    <link rel="icon" type="image/svg+xml" href="/src/web/recursos/marca-cvmn.svg" />
+    <link rel="stylesheet" href="/src/web/estilos.css" />
   </head>
   <body>
-    <h1>Kit de consentimientos de anestesia</h1>
+    <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+    <header class="cabecera">
+      <div class="ancho cabecera__dentro">
+        <img class="cabecera__logo" src="/src/web/recursos/logo-cvmn.svg" alt="Clínica Veterinaria Murcia Norte" width="96" height="96" />
+        <div>
+          <h1>Kit de consentimientos de anestesia</h1>
+          <p class="cabecera__lema">
+            El consentimiento informado y la información para el cliente, con los datos y el logo de tu clínica, en Word.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" class="ancho">
+      <section class="presentacion" aria-label="Presentación">
+        <ul class="sellos">
+          <li>Gratuito</li>
+          <li>Tus datos no salen de tu ordenador</li>
+          <li>Sin registro ni cookies</li>
+        </ul>
+        <p>
+          Selecciona el estilo comunicativo, el color de los títulos y recuadros, tu logo y cumplimenta cada apartado con los datos que quieres que reflejen los documentos que se generarán. Podrás descargar 2 archivos en Word (información para el cliente y el consentimiento informado); y en tu PC los podrás seguir editando si lo prefieres o guardar como PDF. Está preparado para firmar online.
+          Todo se prepara aquí mismo, en tu navegador: no se envía nada a ningún sitio.
+        </p>
+        <p class="aviso-legal" role="note">
+          <strong>Modelo orientativo.</strong> Cada clínica debe revisarlo y adaptarlo con su asesoría legal y su proveedor de protección de datos antes de usarlo.
+        </p>
+      </section>
+
+      <!-- Paso 1 · La clínica -->
+      <section class="paso" aria-labelledby="titulo-paso-1">
+        <h2 id="titulo-paso-1"><span class="paso__num" aria-hidden="true">1</span> La clínica</h2>
+        <p class="paso__ayuda">
+          Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios. Lo que dejes vacío en los demás sale en el Word resaltado en amarillo, por ejemplo <span class="hueco-amarillo">[CIF]</span>, para que lo completes después.
+        </p>
+
+        <form id="form-clinica" novalidate>
+          <div class="rejilla">
+            <div class="campo">
+              <label for="nombreClinica">Nombre comercial <span class="obligatorio" aria-hidden="true">*</span></label>
+              <input id="nombreClinica" name="nombreClinica" type="text" required autocomplete="organization" />
+            </div>
+            <div class="campo">
+              <label for="razonSocial">Razón social</label>
+              <input id="razonSocial" name="razonSocial" type="text" aria-describedby="ayuda-razonSocial" />
+              <p class="campo__ayuda" id="ayuda-razonSocial">Si la dejas vacía, se usa el nombre comercial.</p>
+            </div>
+            <div class="campo">
+              <label for="cif">CIF/NIF</label>
+              <input id="cif" name="cif" type="text" />
+            </div>
+            <div class="campo">
+              <label for="web">Página web</label>
+              <input id="web" name="web" type="text" autocomplete="url" aria-describedby="ayuda-web" />
+              <p class="campo__ayuda" id="ayuda-web">Si no tienes, déjala vacía: no sale nada.</p>
+            </div>
+            <div class="campo campo--ancho">
+              <label for="direccion">Dirección completa <span class="obligatorio" aria-hidden="true">*</span></label>
+              <input id="direccion" name="direccion" type="text" required autocomplete="street-address" aria-describedby="ayuda-direccion" />
+              <p class="campo__ayuda" id="ayuda-direccion">Calle, número, código postal y localidad.</p>
+            </div>
+            <div class="campo">
+              <label for="localidad">Localidad para las firmas <span class="obligatorio" aria-hidden="true">*</span></label>
+              <input id="localidad" name="localidad" type="text" required autocomplete="address-level2" aria-describedby="ayuda-localidad" />
+              <p class="campo__ayuda" id="ayuda-localidad">Sale junto a la fecha, en las firmas del consentimiento.</p>
+            </div>
+            <div class="campo">
+              <label for="telefonos">Teléfonos de contacto <span class="obligatorio" aria-hidden="true">*</span></label>
+              <input id="telefonos" name="telefonos" type="text" required autocomplete="tel" placeholder="968 000 000 · WhatsApp 600 000 000" aria-describedby="ayuda-telefonos" />
+              <p class="campo__ayuda" id="ayuda-telefonos">Escríbelos tal como quieres que salgan. El WhatsApp es opcional.</p>
+            </div>
+            <div class="campo">
+              <label for="email">Correo de contacto <span class="obligatorio" aria-hidden="true">*</span></label>
+              <input id="email" name="email" type="email" required autocomplete="email" />
+            </div>
+            <div class="campo">
+              <label for="emailPrivacidad">Correo de protección de datos</label>
+              <input id="emailPrivacidad" name="emailPrivacidad" type="email" aria-describedby="ayuda-emailPrivacidad" />
+              <p class="campo__ayuda" id="ayuda-emailPrivacidad">Donde los clientes pueden ejercer sus derechos. Si lo dejas vacío, se usa el correo de contacto.</p>
+            </div>
+          </div>
+
+          <div class="bloque-logo">
+            <h3 id="titulo-logo">Logo <span class="opcional">(opcional)</span></h3>
+            <div class="logo">
+              <div class="logo__vista" id="logo-vista" aria-live="polite">
+                <span class="logo__vacio">Sin logo</span>
+              </div>
+              <div>
+                <label class="boton boton--secundario" for="logo-archivo">Elegir imagen…</label>
+                <input class="oculto-visual" id="logo-archivo" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" aria-describedby="ayuda-logo logo-error" />
+                <button class="boton boton--enlace" type="button" id="logo-quitar" hidden>Quitar logo</button>
+                <p class="campo__ayuda" id="ayuda-logo">PNG o JPG, de 2 MB como máximo. Va arriba a la izquierda, sin deformarse.</p>
+                <p class="mensaje mensaje--aviso" id="logo-error" role="alert" hidden></p>
+              </div>
+            </div>
+          </div>
+
+          <fieldset class="bloque-color">
+            <legend><h3>Color de tus documentos</h3></legend>
+            <p class="campo__ayuda">Se usa en los títulos, las viñetas, las cabeceras de las tablas y los recuadros.</p>
+            <div class="colores" id="colores"></div>
+            <p class="mensaje mensaje--aviso" id="color-aviso" aria-live="polite" hidden></p>
+          </fieldset>
+
+          <fieldset class="bloque-version">
+            <legend><h3>Versión del lenguaje</h3></legend>
+            <div class="versiones">
+              <label class="version">
+                <input type="radio" name="variante" value="neutra" checked />
+                <span class="version__nombre">Neutra</span>
+                <span class="version__desc">De usted, «paciente» y «responsable legal».</span>
+                <span class="version__ejemplo">«Le entregamos este documento para que conozca, con calma y antes del procedimiento, en qué consiste la anestesia y cuáles son sus riesgos.»</span>
+              </label>
+              <label class="version">
+                <input type="radio" name="variante" value="calida" />
+                <span class="version__nombre">Cálida</span>
+                <span class="version__desc">De tú, «peludo», «peque» y «tutor/a».</span>
+                <span class="version__ejemplo">«Te entregamos este documento para que conozcas, con calma y antes del procedimiento, en qué consiste la anestesia y cuáles son sus riesgos.»</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="recordar">
+            <label class="casilla">
+              <input type="checkbox" id="recordar" />
+              <span>Recordar los datos de mi clínica en este navegador</span>
+            </label>
+            <p class="campo__ayuda" id="ayuda-recordar">
+              Se guardan solo en este ordenador (datos, logo, color y versión), nunca los del paciente. Si el ordenador es compartido, mejor no marques la casilla.
+            </p>
+            <button class="boton boton--enlace" type="button" id="olvidar" hidden>Olvidar los datos guardados</button>
+            <p class="mensaje" id="recordar-mensaje" aria-live="polite" hidden></p>
+          </div>
+        </form>
+      </section>
+
+      <!-- Paso 2 · Los bloques -->
+      <section class="paso" aria-labelledby="titulo-paso-2">
+        <h2 id="titulo-paso-2"><span class="paso__num" aria-hidden="true">2</span> Los apartados</h2>
+        <p class="paso__ayuda">
+          Desmarca los apartados que no quieras en tu documento. Los demás se numeran solos. La responsabilidad del contenido final es de cada clínica y su asesoría.
+        </p>
+        <div class="documentos" id="bloques"></div>
+        <div id="bloques-avisos" aria-live="polite"></div>
+      </section>
+
+      <!-- Paso 3 · El paciente -->
+      <section class="paso" aria-labelledby="titulo-paso-3">
+        <h2 id="titulo-paso-3"><span class="paso__num" aria-hidden="true">3</span> El paciente <span class="opcional">(opcional)</span></h2>
+        <p class="paso__ayuda">
+          Si quieres, rellena aquí los datos del consentimiento. Lo que dejes vacío sale como hueco en blanco para escribirlo a mano.
+        </p>
+        <p class="privacidad" role="note">
+          <strong>Estos datos no se guardan en ningún sitio.</strong> Solo se usan para fabricar el Word y desaparecen al cerrar o recargar la página.
+        </p>
+        <form id="form-paciente" autocomplete="off" novalidate>
+          <div id="campos-paciente"></div>
+          <button class="boton boton--secundario" type="button" id="vaciar-paciente">Vaciar datos del paciente</button>
+        </form>
+      </section>
+
+      <!-- Paso 4 · La descarga -->
+      <section class="paso" aria-labelledby="titulo-paso-4">
+        <h2 id="titulo-paso-4"><span class="paso__num" aria-hidden="true">4</span> La descarga</h2>
+        <p class="paso__ayuda">
+          Descargarás un archivo ZIP con los dos documentos en Word y una guía breve (<code>LEEME.txt</code>).
+        </p>
+        <div id="descarga-errores" tabindex="-1"></div>
+        <button class="boton boton--principal" type="button" id="descargar-word">Descargar en Word (ZIP)</button>
+        <p class="mensaje" id="descarga-estado" aria-live="polite" hidden></p>
+        <p class="aviso-legal" role="note">
+          <strong>Modelo orientativo.</strong> Cada clínica debe revisarlo y adaptarlo con su asesoría legal y su proveedor de protección de datos antes de usarlo.
+        </p>
+      </section>
+    </main>
+
+    <footer class="pie">
+      <div class="ancho pie__dentro">
+        <img src="/src/web/recursos/logo-cvmn.svg" alt="" width="48" height="48" />
+        <p>
+          Herramienta gratuita cortesía de <strong>Clínica Veterinaria Murcia Norte</strong> para las clínicas y hospitales asociados a VetFamily.<br />
+          Sin cookies ni analítica: todo ocurre en tu navegador.
+        </p>
+      </div>
+    </footer>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

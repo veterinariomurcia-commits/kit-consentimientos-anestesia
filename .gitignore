@@ -9,3 +9,6 @@ salida/
 
 # PDFs originales de la clínica de Sira: llevan datos y logo reales, NO se suben
 referencia/
+
+# Logos originales de la clínica de Sira (imprenta, web…): solo se suben las copias de src/web/recursos/
+marca/logos-CVMN/

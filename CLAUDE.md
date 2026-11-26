@@ -142,7 +142,7 @@ Es la parte más importante del proyecto. El documento debe aguantar que otra pe
 6. **Fuente: Arial.** Existe en Windows, Mac y Google Docs, y LibreOffice la sustituye por Liberation Sans, que mide lo mismo. Tamaños (los de la referencia, D46): cuerpo 9,5 pt, tablas 8,5 pt, notas 8 pt, título del documento 16 pt y títulos de apartado 11,5 pt.
 7. **Página A4**, con márgenes de 1,8 cm a los lados (D46).
 8. **Tablas con ancho fijo** en porcentaje del ancho de la página, y filas que no se partan entre páginas. Los títulos de apartado van siempre con su texto siguiente ("conservar con el siguiente"), y cada firma va en la misma página que el texto que se firma (D56).
-9. **Pie de página:** "{pie} · Modelo v1.0", la casilla de iniciales (solo en el consentimiento) y "Página X de Y" con campos de Word.
+9. **Pie de página:** "{pie} · Modelo v1.0" y "Página X de Y" con campos de Word. Sin casilla de iniciales (D86: en veterinaria no se usa).
 10. **Color de la clínica:** se elige en el formulario (por defecto, un azul o verde sobrio y neutro). Se aplica a los títulos, las viñetas, las cabeceras de tabla, la línea bajo la cabecera y los recuadros destacados. El fondo suave se calcula aclarando ese color. El texto blanco sobre el color debe tener buen contraste; si no lo tiene, se usa texto oscuro.
 11. **Referencia visual:** los PDFs de `referencia/` muestran cómo debe quedar el diseño. Imita la estructura, no los datos ni el naranja de la clínica de Sira.
 
