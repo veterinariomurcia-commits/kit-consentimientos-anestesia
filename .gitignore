@@ -1,0 +1,11 @@
+# Piezas instaladas por npm (se vuelven a instalar con "npm install")
+node_modules/
+
+# Web construida por "npm run build" (se fabrica de nuevo cada vez)
+dist/
+
+# Documentos de prueba generados por "npm run muestras"
+salida/
+
+# PDFs originales de la clínica de Sira: llevan datos y logo reales, NO se suben
+referencia/

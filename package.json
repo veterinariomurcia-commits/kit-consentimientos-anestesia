@@ -1,0 +1,23 @@
+{
+  "name": "kit-consentimientos-anestesia",
+  "version": "1.0.0",
+  "description": "Herramienta web gratuita para generar, con los datos de cada clínica, el consentimiento y la información de anestesia en Word.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "muestras": "node scripts/muestras.ts",
+    "logo-ejemplo": "node scripts/crear-logo-ejemplo.ts"
+  },
+  "dependencies": {
+    "docx": "9.16.1",
+    "jszip": "3.10.2",
+    "marked": "18.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.11",
+    "typescript": "7.0.2",
+    "vite": "8.4.0"
+  }
+}
