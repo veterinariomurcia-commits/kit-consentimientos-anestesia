@@ -16,17 +16,19 @@ export const MEDIDA = {
   /** [linea-corta] en un párrafo: unos 3 cm. */
   lineaCorta: 3 * CM,
   /** [linea-corta] dentro de una celda: algo más corto, para que quepan dos en la misma línea. */
-  lineaCortaEnCelda: Math.round(1.8 * CM),
+  lineaCortaEnCelda: Math.round(1.5 * CM),
   /** [linea] en medio de una frase: como mínimo 3 cm; si no cabe, ocupa una línea entera. */
   lineaMinima: 3 * CM,
   /** Alto mínimo de una fila de la tabla de datos o de una celda para escribir (unos 0,75 cm). */
   altoFila: 425,
   /** [caja]: unas 3 líneas de texto. */
   altoCaja: Math.round(1.6 * CM),
-  /** [caja-grande]: unas 5 líneas de texto. */
-  altoCajaGrande: Math.round(2.6 * CM),
-  /** Recuadro de firma: unos 2 cm de alto. */
-  altoFirma: 2 * CM,
+  /** [caja-grande]: 4 cm, unas 5 o 6 líneas escritas a mano (D62). Crece si se escribe más. */
+  altoCajaGrande: 4 * CM,
+  /** Recuadro de firma en la tabla de firmas: 1,7 cm de alto (en la referencia, unos 1,65 cm). */
+  altoFirma: Math.round(1.7 * CM),
+  /** Recuadro de firma en una línea de texto (firma de rechazo, revocación): 1,4 cm de alto. */
+  altoFirmaLinea: Math.round(1.4 * CM),
 } as const;
 
 /** Carácter de la casilla (U+2610). */

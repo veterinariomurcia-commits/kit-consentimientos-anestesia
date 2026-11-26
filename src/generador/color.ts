@@ -18,6 +18,9 @@ export const GRIS = '6B6B6B';
 /** Gris claro de los bordes de las tablas y de la línea del pie. */
 export const GRIS_BORDE = 'D0D0D0';
 
+/** Fondo gris muy suave de los huecos y cajas para escribir (como los campos de la referencia). */
+export const FONDO_CAMPO = 'F3F3F3';
+
 /** Paleta completa que usa el generador. */
 export interface Paleta {
   /** Color de la clínica: títulos, viñetas, cabeceras de tabla, línea de la cabecera… */

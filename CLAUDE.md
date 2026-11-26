@@ -2,14 +2,21 @@
 
 ## Qué es este proyecto
 
-Una **mini herramienta web gratuita** para que otras clínicas veterinarias (compañeros de VetFamily) descarguen, personalizados con sus datos, dos documentos en **Word (.docx) editable**:
+Una **mini herramienta web gratuita** para que otras clínicas veterinarias (compañeros de VetFamily) descarguen, personalizados con sus datos, dos documentos en **Word (.docx) editable o en PDF**:
 
 1. **Consentimiento informado de anestesia y sedación** (6 páginas, con campos para rellenar y firmas).
 2. **Información sobre la anestesia y la sedación** (3 páginas, solo informativo para el cliente).
 
 Cada documento existe en **dos versiones de lenguaje**: **neutra** (usted, "paciente", "titular") y **cálida** (tú, "peludo", "peque", "tutor/a").
 
-La clínica escribe sus datos, sube su logo, elige su color y su versión, y descarga los Word. **Todo ocurre en su navegador**: no hay servidor, no se guarda nada y no se envía nada a ningún sitio.
+El veterinario sigue unos pasos en la web (ver D57–D60 en `docs/decisiones.md`):
+
+1. Escribe los **datos de la clínica** (obligatorios), sube su logo y elige su color y su versión de lenguaje.
+2. **Elige qué bloques** (apartados) lleva su documento. Puede quitar cualquiera; la responsabilidad del contenido final es de cada clínica y su asesoría.
+3. Si quiere, rellena los **datos del paciente** y del titular. Si no, el documento sale con los huecos en blanco para rellenarlo a mano.
+4. Ve una **vista previa** y **descarga en Word o en PDF**.
+
+**Todo ocurre en su navegador**: no hay servidor y no se envía nada a ningún sitio. **Los datos del paciente nunca se guardan**, ni siquiera en el navegador.
 
 ## Quién trabaja aquí
 
@@ -33,6 +40,7 @@ La clínica escribe sus datos, sube su logo, elige su color y su versión, y des
 
 - **Web estática** (solo archivos HTML, CSS y JS), sin servidor ni base de datos.
 - **Generación del Word en el navegador** con la librería `docx`.
+- **Generación del PDF en el navegador** con una librería que dibuja el PDF aparte (se elige en la tarea del PDF, ver D59). Debe seguir las mismas reglas de diseño que el Word.
 - **Descarga en ZIP** de los dos documentos con `jszip`.
 - **Sin cookies, sin analítica y sin recursos externos en tiempo de ejecución** (ni CDN ni Google Fonts). Todo va empaquetado dentro de la web, para que funcione durante años sin mantenimiento.
 - **Alojamiento:** GitHub Pages, con publicación automática mediante GitHub Actions al subir cambios a la rama `main`.
@@ -45,7 +53,8 @@ La clínica escribe sus datos, sube su logo, elige su color y su versión, y des
 | Vite + TypeScript (sin framework) | Construye la web estática; sin React, para mantenerla simple |
 | `docx` | Fabrica los archivos Word |
 | `jszip` | Empaqueta los documentos en un ZIP |
-| `marked` (o un lector propio) | Lee los textos en markdown de `contenido/` |
+| Librería de PDF (se elige en la tarea del PDF) | Dibuja el PDF en el navegador |
+| Lector propio (`src/contenido/`) | Lee los textos en markdown de `contenido/` (`marked` se descartó, D18) |
 | LibreOffice (instalado en el PC) | Solo para pruebas: convertir los Word de muestra a PDF y revisarlos visualmente |
 
 El **mismo código generador** debe funcionar en el navegador y en Node (script `npm run muestras`), para poder fabricar documentos de prueba sin abrir la web.
@@ -128,29 +137,31 @@ Es la parte más importante del proyecto. El documento debe aguantar que otra pe
 3. **Los huecos para escribir son celdas o tramos con borde inferior**, nunca guiones bajos (`____`).
 4. **Las casillas son el carácter ☐** (U+2610) en una fuente que lo tenga en todos los sistemas. No uses controles de contenido de Word, porque se rompen en Google Docs y LibreOffice.
 5. **El logo va en línea dentro de la cabecera** (en una tabla de cabecera con dos celdas: logo a la izquierda y datos de la clínica alineados a la derecha), nunca flotante. Debe tener un tamaño máximo y respetar su proporción.
-6. **Fuente: Arial.** Existe en Windows, Mac y Google Docs, y LibreOffice la sustituye por Liberation Sans, que mide lo mismo. Tamaños orientativos: cuerpo 10 pt, notas 8,5 pt, título del documento 18 pt y títulos de apartado 13 pt.
-7. **Página A4**, con márgenes de unos 2 cm.
-8. **Tablas con ancho fijo** en porcentaje del ancho de la página, y filas que no se partan entre páginas. Los títulos de apartado van siempre con su texto siguiente ("conservar con el siguiente").
+6. **Fuente: Arial.** Existe en Windows, Mac y Google Docs, y LibreOffice la sustituye por Liberation Sans, que mide lo mismo. Tamaños (los de la referencia, D46): cuerpo 9,5 pt, tablas 8,5 pt, notas 8 pt, título del documento 16 pt y títulos de apartado 11,5 pt.
+7. **Página A4**, con márgenes de 1,8 cm a los lados (D46).
+8. **Tablas con ancho fijo** en porcentaje del ancho de la página, y filas que no se partan entre páginas. Los títulos de apartado van siempre con su texto siguiente ("conservar con el siguiente"), y cada firma va en la misma página que el texto que se firma (D56).
 9. **Pie de página:** "{pie} · Modelo v1.0", la casilla de iniciales (solo en el consentimiento) y "Página X de Y" con campos de Word.
 10. **Color de la clínica:** se elige en el formulario (por defecto, un azul o verde sobrio y neutro). Se aplica a los títulos, las viñetas, las cabeceras de tabla, la línea bajo la cabecera y los recuadros destacados. El fondo suave se calcula aclarando ese color. El texto blanco sobre el color debe tener buen contraste; si no lo tiene, se usa texto oscuro.
 11. **Referencia visual:** los PDFs de `referencia/` muestran cómo debe quedar el diseño. Imita la estructura, no los datos ni el naranja de la clínica de Sira.
 
 ## La web (interfaz)
 
-Una sola página, sencilla y profesional, en español:
+Una sola página, sencilla y profesional, en español, organizada en pasos:
 
 1. **Cabecera:** qué es el kit, que es gratuito y que **los datos no salen de tu ordenador**.
-2. **Formulario:** los datos de la clínica (tabla de variables), el logo (PNG o JPG, opcional, con vista previa), el color (selector con 6 colores sugeridos más uno personalizado) y la versión (cálida o neutra, con un ejemplo breve de cómo suena cada una).
-3. **Botón "Descargar mis documentos"**: genera un ZIP con los dos Word y una guía breve en `LEEME.txt`.
-4. **Aviso visible:** "Modelo orientativo. Cada clínica debe revisarlo y adaptarlo con su asesoría legal y su proveedor de protección de datos antes de usarlo."
-5. **Cómo obtener el PDF:** "Abre el Word y usa Archivo → Guardar como → PDF."
-6. **Accesible y adaptada a móvil**, sin dependencias externas. Los datos del formulario no se guardan (como mucho, en `localStorage` si Sira lo aprueba).
+2. **Paso 1 · La clínica:** los datos de la clínica (tabla de variables; los obligatorios, obligatorios), el logo (PNG o JPG, opcional, con vista previa), el color (selector con 6 colores sugeridos más uno personalizado) y la versión (cálida o neutra, con un ejemplo breve de cómo suena cada una).
+3. **Paso 2 · Los bloques:** la lista de apartados de cada documento, todos marcados al principio. Se puede quitar cualquiera. Si se quita uno al que otro hace referencia, la web avisa, pero deja seguir.
+4. **Paso 3 · El paciente (opcional):** los campos del consentimiento (titular, DNI, paciente, especie, peso, tipo de anestesia…). Lo que se deja vacío sale como hueco para rellenar a mano. Estos datos **nunca se guardan**.
+5. **Paso 4 · Vista previa y descarga:** una vista previa aproximada del documento y los botones para descargar en **Word** o en **PDF** (los dos documentos, con una guía breve en `LEEME.txt`).
+6. **Aviso visible:** "Modelo orientativo. Cada clínica debe revisarlo y adaptarlo con su asesoría legal y su proveedor de protección de datos antes de usarlo."
+7. **Accesible y adaptada a móvil**, sin dependencias externas. Los datos de la clínica, como mucho, se recuerdan en `localStorage` si Sira lo aprueba; los del paciente, nunca.
 
 ## Pruebas obligatorias antes de dar una tarea por terminada
 
-- `npm run muestras` genera los 4 Word de muestra (2 documentos × 2 versiones) con una clínica ficticia ("Clínica Veterinaria Ejemplo") y el logo de `marca/`, y además una muestra **con todos los datos vacíos** para comprobar los huecos amarillos.
+- `npm run muestras` genera los 4 Word de muestra (2 documentos × 2 versiones) con una clínica ficticia ("Clínica Veterinaria Ejemplo") y el logo de `marca/`, una muestra **con todos los datos vacíos** para comprobar los huecos amarillos y las muestras de la prueba de estrés (D45). Cuando existan, también las muestras con bloques quitados, con datos del paciente y en PDF.
 - Convierte las muestras a PDF con LibreOffice (`soffice --headless --convert-to pdf`), mira las páginas y compáralas con `referencia/`.
 - Prueba de estrés: un nombre de clínica muy largo y un logo apaisado. No debe descuadrarse nada.
+- Ninguna firma debe quedar sola en una página, sin el texto que se firma.
 
 ## Comandos
 

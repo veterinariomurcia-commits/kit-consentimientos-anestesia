@@ -126,5 +126,6 @@ Parte de la seguridad de tu peludo depende de ti. No seguir estas indicaciones a
 
 ::: destacado
 **¿Tienes alguna duda?**
+
 Antes de realizar el procedimiento te preguntaremos si tienes alguna duda sobre la anestesia o sus riesgos. Puedes consultarnos también en cualquier momento antes de la cita: {{TELEFONOS}} · {{EMAIL}}.
 :::

@@ -6,6 +6,9 @@
 //
 // Genera los 4 documentos (2 documentos × 2 versiones) y, de cada documento, una muestra con
 // todos los datos vacíos y sin logo, para ver los huecos amarillos.
+//
+// Prueba de estrés: los 2 documentos con un nombre y unos datos muy largos y el logo apaisado
+// (marca/logo-apaisado.png), para comprobar que nada se descuadra.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -23,6 +26,22 @@ mkdirSync(carpetaSalida, { recursive: true });
 
 const datosLogo = new Uint8Array(readFileSync(new URL('marca/logo-ejemplo.png', raiz)));
 const logoEjemplo: Logo = { datos: datosLogo, tipo: detectarTipo(datosLogo) };
+const datosLogoApaisado = new Uint8Array(readFileSync(new URL('marca/logo-apaisado.png', raiz)));
+const logoApaisado: Logo = { datos: datosLogoApaisado, tipo: detectarTipo(datosLogoApaisado) };
+
+/** Clínica ficticia con todos los datos muy largos, para la prueba de estrés. */
+const CLINICA_ESTRES: DatosClinica = {
+  nombreClinica: 'Hospital Clínico Veterinario y Centro de Especialidades Médicas y Quirúrgicas San Francisco de Asís',
+  razonSocial: 'Servicios Veterinarios Integrales del Mediterráneo Sociedad Limitada Profesional',
+  cif: 'B00000000',
+  direccion:
+    'Avenida de la Constitución Española de 1978, número 145, bajo izquierda, 00000 Villanueva de la Cañada del Campo',
+  localidad: 'Villanueva de la Cañada del Campo',
+  telefonos: '900 000 000 · 900 000 001 · Urgencias 24 h 600 000 000 · WhatsApp 600 000 001',
+  email: 'atencionalcliente@hospitalveterinariosanfrancisco-ejemplo.es',
+  emailPrivacidad: 'protecciondedatos@hospitalveterinariosanfrancisco-ejemplo.es',
+  web: 'www.hospitalveterinariosanfrancisco-ejemplo.es',
+};
 
 interface Muestra {
   /** Archivo de contenido/ (sin .md). */
@@ -44,6 +63,13 @@ const MUESTRAS: Muestra[] = [
     salida: 'consentimiento-neutra-datos-vacios.docx',
     datos: DATOS_VACIOS,
     logo: null,
+  },
+  { contenido: 'informacion-neutra', salida: 'informacion-neutra-estres.docx', datos: CLINICA_ESTRES, logo: logoApaisado },
+  {
+    contenido: 'consentimiento-neutra',
+    salida: 'consentimiento-neutra-estres.docx',
+    datos: CLINICA_ESTRES,
+    logo: logoApaisado,
   },
 ];
 

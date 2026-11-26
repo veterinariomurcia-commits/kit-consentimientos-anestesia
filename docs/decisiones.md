@@ -167,3 +167,98 @@ Por qué: igual que la D20, un fallo en el texto debe verse al generar, no en el
 - En la tabla de pruebas, la cabecera "Recomendada" se parte en "Recomendad / a" porque la columna es estrecha. Hay que ajustar el reparto de anchos de las columnas.
 - En la tabla de firmas, "Lugar, fecha y hora" con una localidad larga ("Ciudad Ejemplo") hace que el segundo hueco baje a otra línea.
 - Para ver los PDF como imágenes sin instalar nada se puede usar una función de Windows (`Windows.Data.Pdf`) desde PowerShell. Se usó en T4 con un script temporal; si hace falta en T5, se puede guardar en `scripts/`.
+
+## Decisiones de la tarea T5 · primera parte: revisión (26/11/2026)
+
+**D44 · Script `scripts/pdf-a-imagenes.ps1` para convertir las páginas de un PDF en imágenes PNG.** Usa una función que ya trae Windows (`Windows.Data.Pdf`), sin instalar nada. Uso: `powershell -ExecutionPolicy Bypass -File scripts/pdf-a-imagenes.ps1 salida/pdf/*.pdf` (deja las imágenes en `salida/imagenes/`). El archivo se guarda con la marca BOM al principio, porque sin ella el PowerShell de Windows lee mal las tildes.
+Por qué: se queda en el proyecto en lugar de ser de usar y tirar porque hará falta otra vez en T7. Solo sirve para revisar; no forma parte de la web.
+
+**D45 · Prueba de estrés dentro de `npm run muestras`.** Se generan 8 Word (antes, 6). Las dos muestras nuevas son `informacion-neutra-estres.docx` y `consentimiento-neutra-estres.docx`: llevan una clínica ficticia con todos los datos muy largos y el logo apaisado `marca/logo-apaisado.png` (1200 × 250 px). Ese logo es un rectángulo gris azulado con la huella y tres barras que imitan un texto, y se fabrica con `npm run logo-ejemplo`, igual que el logo cuadrado (D15). El logo cuadrado sale idéntico al anterior.
+Por qué: así la prueba de estrés se repite sola cada vez que se generan las muestras.
+
+**Medidas reales de la referencia** (leídas del PDF, que está hecho con ReportLab y Helvetica, una fuente equivalente a Arial). Márgenes laterales de 1,8 cm. Cabecera a unos 0,9 cm del borde superior. Cuerpo de 9,3 pt con un interlineado de 12,4 pt. Título del documento de 16 pt, apartados de 11,5 pt y subtítulo de 9,5 pt. Tablas y recuadro destacado de 8,6 pt, con filas de 16,8 pt. Nota de protección de datos de 8 pt y pie de 7,3 pt. En la cabecera, el nombre va a 10,5 pt, los datos a 8,3 pt y el logo mide 2,4 cm. Las viñetas van pegadas al margen y el texto empieza a 0,39 cm. Columnas de la tabla ASA: 8 %, 41 % y 51 %.
+
+⚠️ REVISAR la D26: dice que las páginas 2 y siguientes no llevan cabecera "como en la referencia". No es exacto: los dos PDF de referencia repiten la cabecera completa (logo, datos y línea) en **todas** las páginas. La D26 sigue vigente hasta que Sira decida (ver la diferencia 2 de la lista).
+
+**Diferencias encontradas (pendientes de que Sira apruebe las correcciones):**
+1. Más páginas: la información ocupa 4 (la referencia, 3) y el consentimiento 7 (la referencia, 6). Causa: letra más grande, márgenes de 2 cm y un margen superior que deja mucho blanco encima de la cabecera.
+2. La cabecera solo sale en la primera página; en la referencia sale en todas.
+3. Los huecos dentro de una frase parecen guiones bajos, y las celdas vacías de la tabla de datos no muestran ningún hueco. En la referencia son campos con un fondo suave y una línea debajo.
+4. Casillas ☐ pequeñas y opciones demasiado juntas ("☐ Perro ☐ Gato Raza:").
+5. Viñetas con 0,7 cm de sangría; en la referencia van pegadas al margen.
+6. Tabla de pruebas: "Recomendada" se parte en dos líneas.
+7. Tabla de firmas: los huecos de "Lugar, fecha y hora" bajan de línea, y las etiquetas "N.º de colegiado/a" y "Lugar, fecha y hora" se parten en dos líneas.
+8. Firmas: la tabla de firmas no tiene recuadro discontinuo (la referencia sí). En la revocación, el discontinuo es grueso, "Firma del titular" queda pisado por la línea y se ve una raya vertical suelta a la derecha.
+9. Firma "en caso de rechazo": el recuadro mide 2 cm (en la referencia, 1,1 cm) y la etiqueta va abajo en lugar de centrada.
+10. "¿Tiene alguna duda?" sale en la misma línea que el texto siguiente.
+11. Pequeños detalles: el pie no lleva dos puntos tras "Iniciales del titular"; la etiqueta "Riesgos particulares" va arriba y no centrada; las filas de las tablas son más altas.
+12. Prueba de estrés: no se sale nada de la página, pero la cabecera crece hasta unos 4,5 cm y el logo apaisado queda abajo del todo.
+La muestra con los datos vacíos se ve bien: los huecos amarillos salen en la cabecera y en el texto.
+
+## Decisiones de la tarea T5 · segunda parte: correcciones (26/11/2026)
+
+Sira aprobó las tres decisiones de la revisión: bajar los tamaños de letra, la opción (b) para la cabecera y la línea en blanco en `contenido/`. Resultado: la información ocupa **3 páginas** y el consentimiento **6**, igual que la referencia. Pasa en las 8 muestras, también en la prueba de estrés.
+
+**D46 · Tamaños de letra y márgenes como en la referencia.** Cuerpo de 9,5 pt; título de 16 pt; apartados de 11,5 pt; subapartados de 10 pt; subtítulo de 9,5 pt; tablas de 8,5 pt; nota y protección de datos de 8 pt; textos de firma y pie de 7,5 pt; nombre de la clínica de 10,5 pt. Márgenes de 1,8 cm a los lados, 1,4 cm arriba y 1,8 cm abajo. Las filas de las tablas tienen menos relleno (2,5 pt arriba y abajo).
+Por qué: con los tamaños anteriores sobraba una página en cada documento. ⚠️ Los "tamaños orientativos" de CLAUDE.md (10 / 18 / 13 pt) quedan sustituidos por estos. Conviene actualizar CLAUDE.md cuando Sira lo apruebe.
+
+**D47 · Encabezado de la página 2 en adelante (modifica la D26).** La cabecera completa (logo, datos y línea de color) sigue solo en la primera página. Desde la segunda, el encabezado de Word lleva solo el nombre de la clínica: texto pequeño y gris, alineado a la derecha, con una raya fina debajo. Si falta el nombre, sale el hueco amarillo.
+Por qué: es la opción (b) que eligió Sira. Cada hoja queda identificada sin meter tablas ni imágenes en el encabezado de Word, que es lo que peor aguanta Google Docs.
+
+**D48 · Huecos y campos para escribir (modifica la D38 y la D40).**
+- Un `[linea]` que ocupa él solo una celda es ahora un párrafo con el estilo "Campo para escribir": fondo gris muy suave (#F3F3F3) y una línea gris debajo, como los campos de la referencia.
+- Las cajas (`[caja]`, `[caja-grande]` y la caja de "Riesgos particulares") llevan el mismo fondo gris suave.
+- Los huecos dentro de una frase siguen siendo solo una línea gris, **sin fondo**. Por qué: se probó con fondo, pero LibreOffice lo pinta espacio a espacio y se ven rayitas verticales entre ellos.
+- `[linea-corta]` dentro de una celda mide ahora 1,5 cm.
+
+**D49 · Casillas más grandes y opciones más separadas (modifica la D37).** El estilo "Casilla" tiene 11 pt. Antes de cada casilla, el espacio normal se sustituye por un espacio ancho (U+2003, de 1 em), y por él se puede partir la línea igual que por un espacio normal.
+Por qué: en la referencia las casillas se ven bien y las opciones no van amontonadas. No es un espacio para alinear (regla 2 de diseño): solo separa una opción de la siguiente.
+
+**D50 · Viñetas casi pegadas al margen.** La viñeta va en el margen y el texto empieza a 0,45 cm (antes, a 0,7 cm), como en la referencia.
+
+**D51 · Anchos mínimos de las columnas (completa la D31).** Ninguna columna es más estrecha que la palabra más larga de su cabecera; así "Recomendada" no se parte. En las tablas con la primera columna de etiquetas, esa columna mide lo que ocupe la etiqueta más larga, como mucho el 25 %. Lo que hace falta se quita de las demás columnas, en proporción.
+
+**D52 · Recuadros de firma (modifica la D41).**
+- Borde discontinuo fino, de guiones cortos.
+- Un poco de aire bajo "Firma…", para que la línea no lo pise.
+- 1,4 cm de alto en una línea de texto (firma de rechazo y revocación) y 1,7 cm en la tabla de firmas.
+- El texto que acompaña al recuadro va centrado en vertical.
+- En la revocación, las columnas de relleno llevan por fuera el borde de color del recuadro y por dentro ninguno, así que ya no aparece la raya suelta.
+- La tabla de firmas sigue **sin** borde discontinuo en las celdas de firma (como decía la D41). La propia celda hace de recuadro. Es la única diferencia con la referencia que queda en esa tabla.
+
+**D53 · Logo como mucho de 2,4 cm de alto, centrado en vertical (modifica la D28).** Los datos de la clínica también van centrados en vertical. Por qué: es el tamaño del logo de la referencia, y con un logo apaisado ya no se queda abajo del todo.
+
+**D54 · Dos puntos tras el texto de las iniciales del pie:** "Iniciales del titular:". Los pone el generador, así que no hace falta tocar `contenido/`.
+
+**D55 · Línea en blanco tras "¿Tiene alguna duda?" / "¿Tienes alguna duda?"** en `contenido/informacion-neutra.md` y `contenido/informacion-calida.md`. Solo separa la pregunta del texto en dos párrafos; no cambia ninguna palabra. Aprobado por Sira.
+
+**Queda pendiente (no se ha cambiado):**
+- El texto del recuadro destacado sigue al tamaño del cuerpo (9,5 pt); en la referencia mide 8,6 pt. Al final no ha hecho falta bajarlo para ajustar las páginas.
+- "☐ Gato Raza:" sigue con un espacio normal entre "Gato" y "Raza", porque así está escrito en `contenido/`.
+- Comprobar en Word. Se intentó exportar el PDF con Word desde un script, pero Word se quedó esperando (seguramente por algún aviso propio) y hubo que cerrarlo. Se comprobará a mano en la T7.
+
+**D56 · Cada firma va en la misma página que el texto que se firma.** Una firma (una línea con `[firma: …]` o una tabla con celdas de firma) se "ata" con "conservar con el siguiente" de Word a los bloques de texto que tiene justo encima: hasta 3 bloques (párrafos, tablas o notas). Se para en un título, un salto de página o un recuadro. Si no cabe todo, baja junto a la página siguiente. Por ejemplo, la firma "en caso de rechazo" se lleva "Pruebas preanestésicas…", la tabla de pruebas y "Si rechaza…", como en la referencia.
+Por qué: Sira vio que, en la muestra con datos vacíos, la firma quedaba sola al principio de la página 4, sin el texto que se firma. Dónde cae el corte de página depende de los datos y de lo que edite cada clínica, así que tiene que ser una regla y no un salto de página fijo. Comprobado: las 8 muestras siguen con 3 y 6 páginas. ⚠️ Google Docs no siempre respeta esta opción dentro de las tablas: se comprueba en la T11.
+
+## Nueva idea de la herramienta y plan rehecho (26/11/2026, durante la T5)
+
+Sira aclaró cómo imagina la herramienta: un panel donde el veterinario rellena los datos, elige el contenido, ve una vista previa y descarga en Word o en PDF. Lo hecho hasta ahora (lector, generador de Word y diseño) se aprovecha entero. Cambian la web y el plan (`plan-tareas.md`: tareas nuevas T6, T7, T9 y T10; la antigua T6 pasa a ser la T8 y las antiguas T7–T9, las T11–T13). Donde este registro dice "se aplica en T6 (web)" (D24 y el pendiente de T3 sobre los colores claros), ahora es la **T8**.
+
+**D57 · Cada veterinario elige libremente los bloques.** Cualquier apartado se puede quitar; no hay apartados obligatorios.
+Por qué: decisión de Sira. Cada clínica es responsable de su documento y lo revisa con su asesoría. La web solo avisa si se quita un apartado al que otro hace referencia.
+
+**D58 · Las referencias a otros apartados se numeran solas.** En `contenido/` se cambia solo el número ("ver apartado 3") por una marca que el generador rellena con el número que corresponda después de quitar bloques. El texto revisado no cambia. Aprobado por Sira. Se hace en la T6.
+
+**D59 · Descarga en Word y en PDF, con el PDF dibujado aparte (sustituye a la D4).** La librería se elegirá en la T10, gratuita y empaquetada dentro de la web (D11). Llevará una fuente libre que mida como Arial, porque Arial no se puede incluir.
+Por qué: decisión de Sira. Contrapartida aceptada: hay dos diseños, el del Word y el del PDF, que hay que mantener iguales.
+
+**D60 · Datos de la clínica obligatorios; datos del paciente opcionales y nunca guardados.** El veterinario puede rellenar los datos del paciente y del titular en la web, o dejarlos vacíos para rellenarlos a mano. Los datos del paciente no se guardan en ningún sitio, ni en `localStorage`: al cerrar la página desaparecen. Los de la clínica, como mucho, se recuerdan en el navegador si Sira lo aprueba en la T8.
+Por qué: decisión de Sira (la herramienta debe servir para las dos formas de trabajar). No guardar datos de clientes evita riesgos y obligaciones de protección de datos para la herramienta; el documento descargado es responsabilidad de cada clínica.
+
+**D61 · La vista previa es aproximada.** Se dibuja en la propia página (T9). No puede ser idéntica al Word, porque cada programa coloca el texto a su manera.
+
+**CLAUDE.md actualizado** con la nueva descripción de la herramienta y de la web, el PDF en la arquitectura, los tamaños de letra de la D46, la regla de las firmas (D56) y las pruebas nuevas.
+
+**D62 · El recuadro de "Preguntas planteadas… y respuestas del veterinario" mide 4 cm de alto (antes, 2,6 cm).** Es el único `[caja-grande]` de los textos. Es texto libre, sin límite de caracteres, y crece si se escribe más (alto mínimo). Por la D56, la tabla de firmas va siempre en la misma página que este recuadro.
+Por qué: Sira lo pidió para que haya sitio suficiente al escribir a mano. Sigue cabiendo en 6 páginas.
+Pendiente: en la T7, este recuadro será un campo de texto opcional del paso del paciente. En la T11, comprobar qué pasa si alguien escribe dentro más de una página, porque las filas de tabla no se parten entre páginas.

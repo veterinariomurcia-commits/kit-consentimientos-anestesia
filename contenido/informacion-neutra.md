@@ -126,5 +126,6 @@ Parte de la seguridad depende de usted. No seguir estas indicaciones aumenta el 
 
 ::: destacado
 **¿Tiene alguna duda?**
+
 Antes de realizar el procedimiento le preguntaremos si tiene alguna duda sobre la anestesia o sus riesgos. Puede consultarnos también en cualquier momento antes de la cita: {{TELEFONOS}} · {{EMAIL}}.
 :::

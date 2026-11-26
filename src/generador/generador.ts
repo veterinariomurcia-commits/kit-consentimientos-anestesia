@@ -15,6 +15,7 @@ import {
   BorderStyle,
   Document,
   Footer,
+  Header,
   HeadingLevel,
   HeightRule,
   ImageRun,
@@ -36,7 +37,7 @@ import {
 } from 'docx';
 import type { Bloque, DatosClinica, Documento, Linea, Tramo, Variable } from '../contenido/tipos.ts';
 import { resolverVariable } from '../contenido/variables.ts';
-import { COLOR_POR_DEFECTO, GRIS, GRIS_BORDE, crearPaleta, type Paleta } from './color.ts';
+import { COLOR_POR_DEFECTO, FONDO_CAMPO, GRIS, GRIS_BORDE, crearPaleta, type Paleta } from './color.ts';
 import { ESTILO, LISTA, SANGRIA_LISTA, crearEstilos, crearNumeraciones } from './estilos.ts';
 import {
   MEDIDA,
@@ -79,12 +80,16 @@ export class ErrorGenerador extends Error {
 
 const CM = 567;
 const A4 = { ancho: 11906, alto: 16838 };
-const MARGEN = 2 * CM;
-/** Ancho útil entre márgenes: 21 cm − 2 × 2 cm = 17 cm. */
-const ANCHO_UTIL = A4.ancho - 2 * MARGEN;
+/**
+ * Márgenes de la página, como en la referencia (T5): 1,8 cm a los lados. Arriba, 1,4 cm, para que
+ * quepa el encabezado de la página 2 en adelante (a 0,6 cm del borde); abajo, 1,8 cm para el pie.
+ */
+const MARGEN = { lateral: Math.round(1.8 * CM), superior: Math.round(1.4 * CM), inferior: Math.round(1.8 * CM) };
+/** Ancho útil entre márgenes: 21 cm − 2 × 1,8 cm = 17,4 cm. */
+const ANCHO_UTIL = A4.ancho - 2 * MARGEN.lateral;
 
-/** Tamaño máximo del logo en píxeles de pantalla (96 por pulgada): 5 cm de ancho × 2,6 cm de alto. */
-const LOGO_MAXIMO = { ancho: 189, alto: 98 };
+/** Tamaño máximo del logo en píxeles de pantalla (96 por pulgada): 5 cm de ancho × 2,4 cm de alto. */
+const LOGO_MAXIMO = { ancho: 189, alto: 91 };
 
 /** Reparte el ancho útil en columnas según porcentajes. La última columna recoge el redondeo. */
 function anchosEnTwips(porcentajes: number[]): number[] {
@@ -98,9 +103,12 @@ function anchosEnTwips(porcentajes: number[]): number[] {
 const SIN_BORDE: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'auto' };
 const borde = (color: string, grosor = 4): IBorderOptions => ({ style: BorderStyle.SINGLE, size: grosor, color });
 
-/** Borde discontinuo de los recuadros de firma. */
-const BORDE_FIRMA: IBorderOptions = { style: BorderStyle.DASHED, size: 6, color: GRIS };
+/** Borde discontinuo fino, de guiones cortos, de los recuadros de firma. */
+const BORDE_FIRMA: IBorderOptions = { style: BorderStyle.DASH_SMALL_GAP, size: 4, color: GRIS };
 const BORDES_FIRMA = { top: BORDE_FIRMA, bottom: BORDE_FIRMA, left: BORDE_FIRMA, right: BORDE_FIRMA };
+
+/** Celda sin ningún borde propio (para que no aparezcan rayas sueltas). */
+const SIN_BORDES_CELDA = { top: SIN_BORDE, bottom: SIN_BORDE, left: SIN_BORDE, right: SIN_BORDE };
 
 const bordesTabla = (b: IBorderOptions | null, interiores: IBorderOptions | null = b) => {
   const x = b ?? SIN_BORDE;
@@ -123,13 +131,18 @@ interface Contexto {
     salto: boolean;
     /** Lo último fue una tabla: el siguiente párrafo necesita un poco de aire por encima. */
     trasTabla: boolean;
+    /**
+     * Lo que se está creando va "atado" a lo siguiente ("conservar con el siguiente" de Word):
+     * es parte del texto que se firma justo después (ver bloquesAtadosAFirma).
+     */
+    conservar: boolean;
   };
 }
 
 /** Crea el documento de Word en memoria (sin convertirlo todavía en archivo). */
 export function crearDocumentoWord(doc: Documento, opciones: OpcionesGenerador): Document {
   const paleta = crearPaleta(opciones.color ?? COLOR_POR_DEFECTO);
-  const ctx: Contexto = { paleta, listasNumeradas: { n: 0 }, estado: { salto: false, trasTabla: false } };
+  const ctx: Contexto = { paleta, listasNumeradas: { n: 0 }, estado: { salto: false, trasTabla: false, conservar: false } };
   const { cabecera } = doc;
 
   const cuerpo: (Paragraph | Table)[] = [
@@ -140,6 +153,7 @@ export function crearDocumentoWord(doc: Documento, opciones: OpcionesGenerador):
   ];
 
   const nombre = resolverVariable('NOMBRE_CLINICA', opciones.datos);
+  const pie = () => crearPie(cabecera.pie, cabecera.inicialesEnPie);
   return new Document({
     creator: nombre.vacio ? 'Kit de consentimientos de anestesia' : nombre.texto,
     title: cabecera.titulo,
@@ -149,12 +163,25 @@ export function crearDocumentoWord(doc: Documento, opciones: OpcionesGenerador):
     sections: [
       {
         properties: {
+          // La primera página tiene su propio encabezado (vacío): allí va la cabecera completa.
+          titlePage: true,
           page: {
             size: { width: A4.ancho, height: A4.alto },
-            margin: { top: MARGEN, bottom: MARGEN, left: MARGEN, right: MARGEN, header: CM, footer: Math.round(0.8 * CM) },
+            margin: {
+              top: MARGEN.superior,
+              bottom: MARGEN.inferior,
+              left: MARGEN.lateral,
+              right: MARGEN.lateral,
+              header: Math.round(0.6 * CM),
+              footer: Math.round(0.7 * CM),
+            },
           },
         },
-        footers: { default: crearPie(cabecera.pie, cabecera.inicialesEnPie) },
+        headers: {
+          first: new Header({ children: [new Paragraph({ style: ESTILO.pie })] }),
+          default: crearEncabezado(opciones.datos),
+        },
+        footers: { first: pie(), default: pie() },
         children: cuerpo,
       },
     ],
@@ -172,7 +199,7 @@ export async function generarWord(doc: Documento, opciones: OpcionesGenerador): 
 // --- Texto ---
 
 /** Tamaño de letra (en puntos) del texto normal, de las tablas y de las notas. */
-const TAMANO_PT = { cuerpo: 10, tabla: 9.5, nota: 8.5 };
+const TAMANO_PT = { cuerpo: 9.5, tabla: 8.5, nota: 8 };
 
 /** Márgenes izquierdo + derecho de una celda normal (para saber cuánto texto cabe dentro). */
 const MARGEN_LATERAL_CELDA = 220;
@@ -209,7 +236,12 @@ function lineaARuns(linea: Linea, medida: Medida): ParagraphChild[] {
       case 'texto': {
         // El espacio que sigue a una casilla no se parte: "☐ Perro" nunca se separa en dos líneas.
         const trasCasilla = linea[i - 1]?.tipo === 'casilla' && t.texto.startsWith(' ');
-        const texto = trasCasilla ? ' ' + t.texto.slice(1) : t.texto;
+        let texto = trasCasilla ?' ' + t.texto.slice(1) : t.texto;
+        // Antes de la casilla siguiente, un espacio ancho (1 em) para separar bien las opciones:
+        // "☐ Perro   ☐ Gato". Se puede partir por él, como por un espacio normal.
+        if (linea[i + 1]?.tipo === 'casilla' && texto.endsWith(' ') && texto.trim() !== '') {
+          texto = texto.slice(0, -1) + ' ';
+        }
         return new TextRun({ text: texto, bold: t.negrita || undefined, italics: t.cursiva || undefined });
       }
       case 'dato':
@@ -262,14 +294,57 @@ function parrafo(ctx: Contexto, opciones: ConstructorParameters<typeof Paragraph
   ctx.estado.salto = false;
   ctx.estado.trasTabla = false;
   const aire = trasTabla && !opciones.heading ? { spacing: { before: AIRE_TRAS_TABLA } } : {};
-  return new Paragraph({ ...opciones, ...aire, pageBreakBefore: salto || undefined });
+  const atado = ctx.estado.conservar ? { keepNext: true } : {};
+  return new Paragraph({ ...opciones, ...aire, ...atado, pageBreakBefore: salto || undefined });
+}
+
+/** Cuántos bloques de texto, como mucho, se lleva consigo una firma (D56). */
+const BLOQUES_QUE_ARRASTRA_UNA_FIRMA = 3;
+
+/** Bloques que se pueden atar a una firma: el texto que se firma (párrafos, tablas y notas). */
+const SE_PUEDE_ATAR: Bloque['tipo'][] = ['parrafo', 'tabla', 'nota', 'letra-pequena'];
+
+/** El bloque lleva un recuadro de firma: una línea con [firma: …] o una tabla con celdas de firma. */
+function llevaFirma(b: Bloque): boolean {
+  switch (b.tipo) {
+    case 'firma':
+      return true;
+    case 'parrafo':
+      return tieneFirma(b.contenido);
+    case 'tabla':
+      return b.filas.some((f) => f.some((celda) => firmaSola(celda) !== null));
+    default:
+      return false;
+  }
+}
+
+/**
+ * Posiciones de los bloques que deben ir en la misma página que la firma que los sigue (D56):
+ * la firma "se lleva" hasta 3 bloques de texto anteriores (por ejemplo, "Pruebas preanestésicas…",
+ * la tabla de pruebas y "Si rechaza…"). Se para en un título, un salto de página o un recuadro.
+ * Así quien firma ve siempre en la misma página lo que está firmando.
+ */
+function bloquesAtadosAFirma(bloques: Bloque[]): Set<number> {
+  const atados = new Set<number>();
+  bloques.forEach((b, i) => {
+    if (!llevaFirma(b)) return;
+    for (let j = i - 1; j >= 0 && j >= i - BLOQUES_QUE_ARRASTRA_UNA_FIRMA; j--) {
+      if (!SE_PUEDE_ATAR.includes(bloques[j].tipo) || llevaFirma(bloques[j])) break;
+      atados.add(j);
+    }
+  });
+  return atados;
 }
 
 // --- Bloques ---
 
 function crearBloques(bloques: Bloque[], ctx: Contexto): (Paragraph | Table)[] {
   const salida: (Paragraph | Table)[] = [];
-  for (const b of bloques) {
+  const atados = bloquesAtadosAFirma(bloques);
+  // Dentro de una nota o recuadro, se respeta si el bloque de fuera ya iba atado.
+  const atadoPorFuera = ctx.estado.conservar;
+  for (const [i, b] of bloques.entries()) {
+    ctx.estado.conservar = atadoPorFuera || atados.has(i);
     // Si hay un salto pendiente y lo siguiente es una tabla, el salto va en un párrafo propio.
     if (ctx.estado.salto && empiezaConTabla(b)) {
       salida.push(new Paragraph({ children: [new PageBreak()] }));
@@ -281,6 +356,7 @@ function crearBloques(bloques: Bloque[], ctx: Contexto): (Paragraph | Table)[] {
     salida.push(...creados);
     if (creados.length > 0) ctx.estado.trasTabla = creados[creados.length - 1] instanceof Table;
   }
+  ctx.estado.conservar = atadoPorFuera;
   return salida;
 }
 
@@ -316,8 +392,8 @@ function crearBloque(b: Bloque, ctx: Contexto): (Paragraph | Table)[] {
     case 'titulo2':
       return [parrafo(ctx, { heading: HeadingLevel.HEADING_2, children: lineaARuns(b.contenido, medidaCuerpo(ctx)) })];
     case 'parrafo':
-      if (esSolo(b.contenido, 'caja')) return [crearCaja(MEDIDA.altoCaja)];
-      if (esSolo(b.contenido, 'caja-grande')) return [crearCaja(MEDIDA.altoCajaGrande)];
+      if (esSolo(b.contenido, 'caja')) return [crearCaja(MEDIDA.altoCaja, ctx.estado.conservar)];
+      if (esSolo(b.contenido, 'caja-grande')) return [crearCaja(MEDIDA.altoCajaGrande, ctx.estado.conservar)];
       if (tieneFirma(b.contenido)) return [crearLineaFirma(b.contenido, ctx)];
       return [parrafo(ctx, { style: ctx.estiloParrafo, children: lineaARuns(b.contenido, medidaCuerpo(ctx)) })];
     case 'lista': {
@@ -332,7 +408,7 @@ function crearBloque(b: Bloque, ctx: Contexto): (Paragraph | Table)[] {
       );
     }
     case 'tabla':
-      return [crearTabla(b, ctx.paleta)];
+      return [crearTabla(b, ctx.paleta, ctx.estado.conservar)];
     case 'tabla-datos':
       return [crearTablaDatos(b, ctx.paleta)];
     case 'destacado':
@@ -356,23 +432,48 @@ function crearBloque(b: Bloque, ctx: Contexto): (Paragraph | Table)[] {
  * Calcula el ancho de cada columna (en %) según la longitud de su texto más largo,
  * con un mínimo del 10 % para que ninguna columna quede demasiado estrecha.
  */
-function porcentajesColumnas(filas: Linea[][]): number[] {
-  const columnas = filas[0].length;
+function porcentajesColumnas(cabecera: Linea[], filas: Linea[][], primeraColumnaEtiquetas = false): number[] {
+  const todas = [cabecera, ...filas];
+  const columnas = cabecera.length;
   const pesos = Array.from({ length: columnas }, (_, c) =>
-    Math.min(50, Math.max(5, ...filas.map((f) => textoPlano(f[c] ?? []).length))),
+    Math.min(50, Math.max(5, ...todas.map((f) => textoPlano(f[c] ?? []).length))),
   );
-  let porcentajes = pesos.map((p) => (p * 100) / pesos.reduce((a, b) => a + b, 0));
-  const MINIMO = 10;
-  const estrechas = porcentajes.filter((p) => p < MINIMO).length;
-  if (estrechas > 0) {
-    const sobrante = 100 - MINIMO * estrechas;
-    const anchas = porcentajes.filter((p) => p >= MINIMO).reduce((a, b) => a + b, 0);
-    porcentajes = porcentajes.map((p) => (p < MINIMO ? MINIMO : (p * sobrante) / anchas));
-  }
-  return porcentajes;
+  const porcentajes = pesos.map((p) => (p * 100) / pesos.reduce((a, b) => a + b, 0));
+
+  // Mínimo de cada columna: el 10 %, y además que quepa entera la palabra más larga de la cabecera
+  // (para que "Recomendada" no se parta). Si la primera columna son etiquetas, que quepa la
+  // etiqueta más larga en una sola línea, siempre que no pase del 25 %.
+  const minimos = Array.from({ length: columnas }, (_, c) => {
+    const palabras = textoPlano(cabecera[c] ?? []).split(/\s+/);
+    let minimo = anchoNegrita(Math.max(0, ...palabras.map((p) => p.length)));
+    if (primeraColumnaEtiquetas && c === 0) {
+      const etiqueta = anchoNegrita(Math.max(0, ...filas.map((f) => textoPlano(f[0] ?? []).length)));
+      minimo = Math.max(minimo, Math.min(25, etiqueta));
+    }
+    return Math.max(10, minimo);
+  });
+  return repartirConMinimos(porcentajes, minimos);
 }
 
-const MARGENES_CELDA = { top: 70, bottom: 70, left: 110, right: 110 };
+/** Porcentaje del ancho útil que ocupa un texto en negrita de `letras` letras (con los márgenes de la celda). */
+const anchoNegrita = (letras: number) =>
+  Math.ceil(((letras * 0.6 * TAMANO_PT.tabla * 20 + MARGEN_LATERAL_CELDA + 60) * 100) / ANCHO_UTIL);
+
+/** Sube al mínimo las columnas que no llegan y quita lo que falta de las demás, en proporción. */
+function repartirConMinimos(porcentajes: number[], minimos: number[]): number[] {
+  let resultado = [...porcentajes];
+  for (let vuelta = 0; vuelta < 5; vuelta++) {
+    const fijas = resultado.map((p, c) => p <= minimos[c]);
+    const ocupado = resultado.reduce((a, _p, c) => a + (fijas[c] ? minimos[c] : 0), 0);
+    const libres = resultado.reduce((a, p, c) => a + (fijas[c] ? 0 : p), 0);
+    if (libres === 0) break;
+    resultado = resultado.map((p, c) => (fijas[c] ? minimos[c] : (p * (100 - ocupado)) / libres));
+    if (resultado.every((p, c) => p >= minimos[c] - 0.01)) break;
+  }
+  return resultado;
+}
+
+const MARGENES_CELDA = { top: 50, bottom: 50, left: 110, right: 110 };
 
 const fondo = (color: string | undefined) =>
   color ? { type: ShadingType.CLEAR, color: 'auto', fill: color } : undefined;
@@ -388,32 +489,43 @@ interface ContenidoCelda {
   /** La celda es un recuadro de firma (va siempre en blanco). */
   firma?: boolean;
   alineacion: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
+  /** Fondo propio de la celda (las cajas para escribir llevan el gris suave de los campos). */
+  fondo?: string;
 }
 
 /**
  * Prepara el contenido de una celda de tabla:
- *   - solo [linea] → la celda entera es el hueco (vacía, con sitio para escribir);
- *   - solo [caja] o [caja-grande] → la celda vacía y más alta;
+ *   - solo [linea] → un párrafo-campo (estilo "Campo para escribir": fondo gris suave y línea debajo);
+ *   - solo [caja] o [caja-grande] → la celda vacía, más alta y con el fondo gris suave;
  *   - solo [firma: Texto] → la celda es el recuadro de firma: alta y con el texto pequeño abajo.
  *     No lleva borde discontinuo: la tabla ya la enmarca, y un borde propio de la celda choca con
  *     las líneas de la tabla (LibreOffice lo dibuja a medias);
  *   - solo casillas → centradas;
  *   - cualquier otra cosa → texto normal, con sus casillas y huecos dentro.
  */
-function contenidoCelda(linea: Linea, ancho: number, estilo: string): ContenidoCelda {
+function contenidoCelda(linea: Linea, ancho: number, estilo: string, conservar = false): ContenidoCelda {
+  // "Conservar con el siguiente" en todos los párrafos de la fila: así Word no separa la fila de lo que sigue.
+  const atado = conservar ? { keepNext: true } : {};
   const vacio = (alto: number): ContenidoCelda => ({
-    parrafos: [new Paragraph({ style: estilo })],
+    parrafos: [new Paragraph({ style: estilo, ...atado })],
     alto,
     alineacion: VerticalAlignTable.CENTER,
+    fondo: FONDO_CAMPO,
   });
-  if (esSolo(linea, 'linea')) return vacio(MEDIDA.altoFila);
+  if (esSolo(linea, 'linea')) {
+    return {
+      parrafos: [new Paragraph({ style: ESTILO.campo, ...atado })],
+      alto: MEDIDA.altoFila,
+      alineacion: VerticalAlignTable.CENTER,
+    };
+  }
   if (esSolo(linea, 'caja')) return vacio(MEDIDA.altoCaja);
   if (esSolo(linea, 'caja-grande')) return vacio(MEDIDA.altoCajaGrande);
 
   const firma = firmaSola(linea);
   if (firma !== null) {
     return {
-      parrafos: [new Paragraph({ style: ESTILO.textoFirma, children: [new TextRun(firma)] })],
+      parrafos: [new Paragraph({ style: ESTILO.textoFirma, ...atado, children: [new TextRun(firma)] })],
       alto: MEDIDA.altoFirma,
       firma: true,
       alineacion: VerticalAlignTable.BOTTOM,
@@ -425,6 +537,7 @@ function contenidoCelda(linea: Linea, ancho: number, estilo: string): ContenidoC
     parrafos: [
       new Paragraph({
         style: estilo,
+        ...atado,
         alignment: centrar ? AlignmentType.CENTER : undefined,
         children: lineaARuns(linea, medidaCelda(ancho)),
       }),
@@ -433,8 +546,8 @@ function contenidoCelda(linea: Linea, ancho: number, estilo: string): ContenidoC
   };
 }
 
-function crearTabla(b: Extract<Bloque, { tipo: 'tabla' }>, paleta: Paleta): Table {
-  const anchos = anchosEnTwips(porcentajesColumnas([b.cabecera, ...b.filas]));
+function crearTabla(b: Extract<Bloque, { tipo: 'tabla' }>, paleta: Paleta, conservar = false): Table {
+  const anchos = anchosEnTwips(porcentajesColumnas(b.cabecera, b.filas, b.primeraColumnaEtiquetas));
 
   const cabecera = new TableRow({
     tableHeader: true,
@@ -452,7 +565,12 @@ function crearTabla(b: Extract<Bloque, { tipo: 'tabla' }>, paleta: Paleta): Tabl
 
   const filas = b.filas.map((fila, i) => {
     const contenidos = anchos.map((ancho, c) =>
-      contenidoCelda(fila[c] ?? [], ancho, b.primeraColumnaEtiquetas && c === 0 ? ESTILO.etiquetaTabla : ESTILO.textoTabla),
+      contenidoCelda(
+        fila[c] ?? [],
+        ancho,
+        b.primeraColumnaEtiquetas && c === 0 ? ESTILO.etiquetaTabla : ESTILO.textoTabla,
+        conservar,
+      ),
     );
     const alto = Math.max(0, ...contenidos.map((x) => x.alto ?? 0));
     return new TableRow({
@@ -464,7 +582,7 @@ function crearTabla(b: Extract<Bloque, { tipo: 'tabla' }>, paleta: Paleta): Tabl
             width: { size: anchos[c], type: WidthType.DXA },
             verticalAlign: x.alineacion,
             // Los recuadros de firma van siempre en blanco, también en las filas alternas.
-            shading: fondo(i % 2 === 1 && !x.firma ? paleta.fondoFilas : undefined),
+            shading: fondo(x.fondo ?? (i % 2 === 1 && !x.firma ? paleta.fondoFilas : undefined)),
             children: x.parrafos,
           }),
       ),
@@ -494,15 +612,13 @@ function crearTablaDatos(b: Extract<Bloque, { tipo: 'tabla-datos' }>, paleta: Pa
   const filas = b.filas.map((f) => {
     const contenido = contenidoCelda(f.contenido, anchos[1], ESTILO.textoTabla);
     const alto = Math.max(MEDIDA.altoFila, contenido.alto ?? 0);
-    // En una fila alta (una caja), la etiqueta va arriba, a la altura de donde se empieza a escribir.
-    const alineacionEtiqueta = alto > MEDIDA.altoFila ? VerticalAlignTable.TOP : VerticalAlignTable.CENTER;
     return new TableRow({
       cantSplit: true,
       height: altoMinimo(alto),
       children: [
         new TableCell({
           width: { size: anchos[0], type: WidthType.DXA },
-          verticalAlign: alineacionEtiqueta,
+          verticalAlign: VerticalAlignTable.CENTER,
           shading: fondo(paleta.fondoSuave),
           children: [
             new Paragraph({ style: ESTILO.etiquetaTabla, children: lineaARuns(f.etiqueta, medidaCelda(anchos[0])) }),
@@ -511,6 +627,7 @@ function crearTablaDatos(b: Extract<Bloque, { tipo: 'tabla-datos' }>, paleta: Pa
         new TableCell({
           width: { size: anchos[1], type: WidthType.DXA },
           verticalAlign: contenido.alineacion,
+          shading: fondo(contenido.fondo),
           children: contenido.parrafos,
         }),
       ],
@@ -530,8 +647,8 @@ function crearTablaDatos(b: Extract<Bloque, { tipo: 'tabla-datos' }>, paleta: Pa
 /** Borde de las cajas para escribir. */
 const BORDE_CAJA = borde(GRIS, 4);
 
-/** [caja] o [caja-grande] en un párrafo propio: una tabla de una celda con borde gris y alto fijo. */
-function crearCaja(alto: number): Table {
+/** [caja] o [caja-grande] en un párrafo propio: una tabla de una celda con borde gris, fondo gris suave y alto mínimo. */
+function crearCaja(alto: number, conservar = false): Table {
   return new Table({
     width: { size: ANCHO_UTIL, type: WidthType.DXA },
     columnWidths: [ANCHO_UTIL],
@@ -542,7 +659,13 @@ function crearCaja(alto: number): Table {
       new TableRow({
         cantSplit: true,
         height: altoMinimo(alto),
-        children: [new TableCell({ width: { size: ANCHO_UTIL, type: WidthType.DXA }, children: [new Paragraph({})] })],
+        children: [
+          new TableCell({
+            width: { size: ANCHO_UTIL, type: WidthType.DXA },
+            shading: fondo(FONDO_CAMPO),
+            children: [new Paragraph({ keepNext: conservar || undefined })],
+          }),
+        ],
       }),
     ],
   });
@@ -551,7 +674,7 @@ function crearCaja(alto: number): Table {
 /**
  * Celdas de una línea con recuadro de firma, ya partida en trozos (ver partirPorFirma):
  * el recuadro es una celda con borde discontinuo y el texto pequeño abajo; el texto normal va
- * en su propia celda, alineado abajo para que quede a la altura del final del recuadro.
+ * en su propia celda, centrado en vertical respecto al recuadro.
  */
 function celdasFirma(
   segmentos: Segmento[],
@@ -564,12 +687,14 @@ function celdasFirma(
     const comun = {
       width: { size: anchos[i], type: WidthType.DXA },
       columnSpan: spans[i] && spans[i] > 1 ? spans[i] : undefined,
-      verticalAlign: VerticalAlignTable.BOTTOM,
     };
     if (s.tipo === 'firma') {
       return new TableCell({
         ...comun,
+        verticalAlign: VerticalAlignTable.BOTTOM,
         borders: BORDES_FIRMA,
+        // Un poco de aire bajo el texto, para que la línea discontinua no lo pise.
+        margins: { top: 0, bottom: 60, left: 110, right: 110 },
         shading: fondo('FFFFFF'),
         children: [new Paragraph({ style: ESTILO.textoFirma, children: [new TextRun(s.texto)] })],
       });
@@ -577,6 +702,8 @@ function celdasFirma(
     const medida = medidaCelda(anchos[i], ctx.estiloParrafo ? TAMANO_PT.nota : TAMANO_PT.cuerpo);
     return new TableCell({
       ...comun,
+      verticalAlign: VerticalAlignTable.CENTER,
+      borders: SIN_BORDES_CELDA,
       shading: fondo(fondoTexto),
       children: [new Paragraph({ style: ctx.estiloParrafo, spacing: { after: 0 }, children: lineaARuns(s.linea, medida) })],
     });
@@ -601,7 +728,9 @@ function crearLineaFirma(linea: Linea, ctx: Contexto): Table {
     layout: TableLayoutType.FIXED,
     borders: bordesTabla(null),
     margins: MARGENES_CELDA,
-    rows: [new TableRow({ cantSplit: true, height: altoMinimo(MEDIDA.altoFirma), children: celdasFirma(segmentos, anchos, ctx) })],
+    rows: [
+      new TableRow({ cantSplit: true, height: altoMinimo(MEDIDA.altoFirmaLinea), children: celdasFirma(segmentos, anchos, ctx) }),
+    ],
   });
 }
 
@@ -639,8 +768,16 @@ function crearDestacado(bloques: Bloque[], ctx: Contexto): Table {
   columnas[columnas.length - 1] += ANCHO_UTIL - columnas.reduce((a, b) => a + b, 0);
   const totalColumnas = columnas.length;
 
-  const celdaRelleno = (ancho: number) =>
-    new TableCell({ width: { size: ancho, type: WidthType.DXA }, shading: fondo(ctx.paleta.fondoSuave), children: [new Paragraph({})] });
+  // Columna de relleno: por fuera lleva el borde de color del recuadro; por dentro, ninguno
+  // (si no, aparece una raya suelta junto a la firma).
+  const bordeRecuadro = borde(ctx.paleta.principal, 8);
+  const celdaRelleno = (ancho: number, lado: 'left' | 'right') =>
+    new TableCell({
+      width: { size: ancho, type: WidthType.DXA },
+      borders: { ...SIN_BORDES_CELDA, [lado]: bordeRecuadro },
+      shading: fondo(ctx.paleta.fondoSuave),
+      children: [new Paragraph({ style: ESTILO.pie })],
+    });
 
   const filas: TableRow[] = [];
   let pendientes: Bloque[] = [];
@@ -680,8 +817,8 @@ function crearDestacado(bloques: Bloque[], ctx: Contexto): Table {
     filas.push(
       new TableRow({
         cantSplit: true,
-        height: altoMinimo(MEDIDA.altoFirma),
-        children: [celdaRelleno(columnas[0]), ...celdas, celdaRelleno(columnas[columnas.length - 1])],
+        height: altoMinimo(MEDIDA.altoFirmaLinea),
+        children: [celdaRelleno(columnas[0], 'left'), ...celdas, celdaRelleno(columnas[columnas.length - 1], 'right')],
       }),
     );
     // Una fila de relleno debajo, para que el recuadro de firma no toque el borde inferior.
@@ -756,7 +893,7 @@ function crearCabeceraClinica(datos: DatosClinica, paleta: Paleta, logo: Logo | 
   const celda = (hijos: Paragraph[], c: number) =>
     new TableCell({
       width: { size: anchos[c], type: WidthType.DXA },
-      verticalAlign: VerticalAlignTable.BOTTOM,
+      verticalAlign: VerticalAlignTable.CENTER,
       children: hijos,
     });
 
@@ -792,7 +929,21 @@ function crearParrafoLogo(logo: Logo | null): Paragraph {
   });
 }
 
+// --- Encabezado de la página 2 en adelante ---
+
+/**
+ * Encabezado de Word de la página 2 en adelante: solo el nombre de la clínica, en una línea de
+ * texto con una raya fina debajo (D47). La primera página no lo lleva: allí está la cabecera completa.
+ * Es texto sencillo, sin tabla ni imagen, para que aguante bien en Google Docs y LibreOffice.
+ */
+function crearEncabezado(datos: DatosClinica): Header {
+  return new Header({ children: [new Paragraph({ style: ESTILO.encabezado, children: [dato('NOMBRE_CLINICA', datos)] })] });
+}
+
 // --- Pie de página ---
+
+/** "Iniciales del titular" → "Iniciales del titular:" (si ya acaba en dos puntos, se deja igual). */
+const conDosPuntos = (texto: string) => (texto.trimEnd().endsWith(':') ? texto : `${texto.trimEnd()}:`);
 
 /**
  * Pie: "{pie} · Modelo v1.0" a la izquierda, la casilla de iniciales (solo si el documento
@@ -823,7 +974,7 @@ function crearPie(textoPie: string, iniciales: string | null): Footer {
   const celdas = iniciales
     ? [
         celda([textoIzquierda], 0),
-        celda([new Paragraph({ style: ESTILO.pie, alignment: AlignmentType.RIGHT, children: [new TextRun(iniciales)] })], 1, undefined, {
+        celda([new Paragraph({ style: ESTILO.pie, alignment: AlignmentType.RIGHT, children: [new TextRun(conDosPuntos(iniciales))] })], 1, undefined, {
           right: 100,
         }),
         celda([new Paragraph({ style: ESTILO.pie })], 2, bordesTabla(borde(GRIS, 6))),
