@@ -46,7 +46,7 @@ Por qué: los controles de contenido se rompen o desaparecen en Google Docs y Li
 - [ ] **Revisión de la versión cálida** por el equipo veterinario, sobre todo "tutor/a" en lugar de "titular" en las partes legales.
 - [ ] **Revisión legal** del texto genérico antes de compartirlo (asesoría o proveedor de protección de datos).
 - [x] **Color por defecto** de la herramienta: azul petróleo #2E6A80 (D29, D76).
-- [ ] **Nombre y dirección de la web** (por ejemplo, un subdominio propio o la dirección de GitHub).
+- [x] **Nombre y dirección de la web**: la dirección de GitHub, https://veterinariomurcia-commits.github.io/kit-consentimientos-anestesia/ (D106). Un dominio propio se podría añadir más adelante sin cambiar el código (D103).
 - [ ] **Firma digital online** (Autografus u otras plataformas): los Word ya se pueden convertir a PDF y subir a esas plataformas. Falta decidir si se añade al `LEEME.txt` una guía breve (rellenar casillas y huecos en Word antes de pasar a PDF) y si conviene dejar más espacio en los recuadros de firma.
 - [ ] **Guardar los consentimientos firmados**: propuesta de NO hacerlo en la herramienta (ver la conversación de T1). Lo guarda cada clínica en su plataforma de firma, su programa de gestión o su nube.
 
@@ -421,3 +421,17 @@ Límite conocido: pdfmake no sabe partir un bloque así si ocupa más de una pá
 
 **Pendiente:**
 - T11: abrir los PDF en el móvil y en el ordenador (Adobe, Edge, Chrome, el visor del móvil) y abrir los dos PDF del ZIP a la vez (D100).
+
+## Decisiones de la tarea T12 (27/11/2026)
+
+**D102 · Publicar antes de las pruebas de compatibilidad: la T12 va antes que la T11** (decisión de Sira). La T11 sigue en el plan, pendiente, sin cambios. Por qué: tener ya la web en su dirección pública, y así hacer las pruebas de la T11 (Word, LibreOffice, Google Docs, el móvil) con la web de verdad. Contrapartida aceptada: si la T11 encuentra algo que se descuadra, se corrige y se vuelve a publicar (basta con subir el cambio).
+
+**D103 · Ruta base de Vite relativa (`./`), en `vite.config.ts`.** La web vive en la subcarpeta `/kit-consentimientos-anestesia/`. Con la ruta relativa, cada archivo (logo, estilos, vista previa, pdfmake y las fuentes del PDF, D98) se busca al lado de la página, sea cual sea la carpeta. Por qué en lugar de escribir el nombre de la subcarpeta: sigue funcionando si se cambia el nombre del repositorio o se pone un dominio propio. `npm run dev` y `npm run muestras` no cambian.
+
+**D104 · Publicación con un "robot" de GitHub (GitHub Action), opción gratuita.** `.github/workflows/publicar.yml`: cada vez que se sube algo a `main` (o a mano, desde la pestaña Actions), instala las piezas con las versiones exactas de `package-lock.json` (`npm ci`), ejecuta `npm run build` con Node 24 y publica `dist/` en GitHub Pages. Solo tiene los permisos justos para publicar. En GitHub, Settings → Pages → Source debe estar en "GitHub Actions". Por qué: es gratis con el repositorio público (D3) y no hay que fabricar ni subir `dist/` a mano. Descartadas: "Deploy from a branch" (obliga a subir `dist/` a mano) y Pages con el repositorio privado (de pago). El robot usa piezas de GitHub solo para fabricar la web; quien la visita no carga nada de fuera (D11).
+
+**D105 · Las licencias de las fuentes también se publican en la web.** Las licencias de Liberation Sans (OFL) y de DejaVu Sans permiten publicar las fuentes en una web gratuita y meterlas en los PDF, pero piden que la licencia vaya con la fuente. En el repositorio ya iba al lado (D95, D96); en la web publicada iban las fuentes sin sus licencias. Ahora `src/main.ts` hace que Vite publique `LICENCIA-OFL.txt` y `LICENCIA-DEJAVU.txt`, y el pie de la web dice: "Las letras del PDF son Liberation Sans y DejaVu Sans, de licencia libre (ver licencias: …)", con un enlace a cada una. Las fuentes publicadas no se modifican; en los PDF solo van las letras usadas, que las licencias permiten.
+
+**D106 · Lo que es público (revisado con Sira).** Todo el historial se revisó: `referencia/`, `salida/`, `dist/` y `marca/logos-CVMN/` nunca se han subido, y los commits llevan el correo anónimo de GitHub. Sira aprueba que sean públicos el logo de Clínica Veterinaria Murcia Norte (`src/web/recursos/`), el "cortesía de…" del pie (D77), el nombre de la clínica en `docs/` y el nombre de la cuenta en la dirección.
+
+**Comprobado en T12** con Edge sin ventana, manejado desde un script de prueba temporal (no se queda en el proyecto), con la web construida y servida dentro de `/kit-consentimientos-anestesia/`, como en GitHub Pages: carga el logo; la vista previa se dibuja; pdfmake no se carga al abrir; los dos enlaces de licencia abren su texto; el ZIP de Word trae los 2 Word y el LEEME; el ZIP de PDF trae los 2 PDF (6 y 3 páginas) y el LEEME; se piden las 5 fuentes; no hay peticiones fuera de la propia web, ni respuestas con error, ni errores en la consola. `npm run build`, `npm run dev` y `npm run muestras` siguen funcionando.

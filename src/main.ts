@@ -7,6 +7,13 @@ import { iniciarPasoDescarga } from './web/paso-descarga.ts';
 import { iniciarPasoPaciente } from './web/paso-paciente.ts';
 import { iniciarRecordar } from './web/recordar.ts';
 import { iniciarVistaPrevia } from './web/vista-previa.ts';
+// Las licencias de las fuentes del PDF se publican dentro de la web, junto a las fuentes (T12):
+// "?url" le dice a Vite que copie el archivo tal cual y nos dé su dirección.
+import licenciaLiberation from './generador-pdf/fuentes/LICENCIA-OFL.txt?url';
+import licenciaDejaVu from './generador-pdf/fuentes/LICENCIA-DEJAVU.txt?url';
+
+document.getElementById('licencia-liberation')?.setAttribute('href', licenciaLiberation);
+document.getElementById('licencia-dejavu')?.setAttribute('href', licenciaDejaVu);
 
 try {
   iniciarPasoClinica();

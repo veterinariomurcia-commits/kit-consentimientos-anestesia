@@ -43,7 +43,7 @@ El veterinario sigue unos pasos en la web (ver D57–D60 en `docs/decisiones.md`
 - **Generación del PDF en el navegador** con `pdfmake`, que dibuja el PDF aparte (D59, D94). Sigue las mismas reglas de diseño y las mismas medidas que el Word (D97). Se carga solo al pulsar "Descargar en PDF".
 - **Descarga en ZIP** de los dos documentos con `jszip`.
 - **Sin cookies, sin analítica y sin recursos externos en tiempo de ejecución** (ni CDN ni Google Fonts). Todo va empaquetado dentro de la web, para que funcione durante años sin mantenimiento.
-- **Alojamiento:** GitHub Pages, con publicación automática mediante GitHub Actions al subir cambios a la rama `main`.
+- **Alojamiento:** GitHub Pages, con publicación automática mediante GitHub Actions al subir cambios a la rama `main` (`.github/workflows/publicar.yml`). Dirección: https://veterinariomurcia-commits.github.io/kit-consentimientos-anestesia/ . Vite usa la ruta base relativa `./` (`vite.config.ts`, D103).
 
 ### Stack
 

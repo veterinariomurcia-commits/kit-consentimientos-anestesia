@@ -53,12 +53,14 @@ Elegir una librería gratuita que dibuje el PDF en el navegador (proponer pros y
 **Comprobación:** los PDF de muestra tienen las mismas páginas que los Word y se parecen a la referencia. → pdfmake con Liberation Sans (y DejaVu Sans para ☐ y ☒). Los 13 PDF de muestra tienen las mismas páginas que su Word (6 y 3) y se ven prácticamente iguales. Botón «Descargar en PDF (ZIP)» probado en un navegador sin ventana (D94–D101).
 
 ## T11 · Pruebas de compatibilidad [ ]
+> Pendiente: se hará después de la T12 (D102). Se puede probar ya con la web publicada.
+
 Abrir los Word descargados en Word, LibreOffice y Google Docs. En cada uno, cambiar un dato, alargar un texto y sustituir el logo. Comprobar que las firmas siguen con su texto (D56). Abrir los PDF en el móvil y en el ordenador. Guardar capturas en `pruebas/` y corregir lo que se descuadre.
 **Comprobación:** se ve bien en los tres programas, o los problemas quedan anotados y aceptados en `decisiones.md`.
 
-## T12 · Publicación en GitHub Pages [ ]
+## T12 · Publicación en GitHub Pages [x]
 Crear el repositorio en GitHub (público, para que Pages sea gratis), configurar la GitHub Action de despliegue y publicar.
-**Comprobación:** la web funciona en su dirección pública desde el móvil y desde otro ordenador.
+**Comprobación:** la web funciona en su dirección pública desde el móvil y desde otro ordenador. → Hecha el 27/11/2026, **antes que la T11** (decisión de Sira, D102). Dirección: https://veterinariomurcia-commits.github.io/kit-consentimientos-anestesia/ . Ruta base relativa, robot `.github/workflows/publicar.yml` y licencias de las fuentes publicadas en la web (D103–D106). Probado en Edge sin ventana con la web dentro de una subcarpeta: vista previa, ZIP de Word y ZIP de PDF (6 y 3 páginas), sin peticiones fuera de la web.
 
 ## T13 · Prueba con usuarios (otro día) [ ]
 Dos personas del equipo, o un compañero de otra clínica, la prueban con sus datos y su logo. Recoger sus comentarios y corregir. Revisión del texto genérico por la asesoría antes de compartirlo en VetFamily.
