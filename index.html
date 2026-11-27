@@ -175,7 +175,22 @@
 
       <!-- Paso 4 · La descarga -->
       <section class="paso" aria-labelledby="titulo-paso-4">
-        <h2 id="titulo-paso-4"><span class="paso__num" aria-hidden="true">4</span> La descarga</h2>
+        <h2 id="titulo-paso-4"><span class="paso__num" aria-hidden="true">4</span> Vista previa y descarga</h2>
+        <p class="paso__ayuda">
+          Revisa cómo quedan tus documentos. La vista previa cambia sola cuando cambias un dato, un apartado o el color.
+        </p>
+
+        <div class="vista-previa">
+          <div class="pestanas" role="tablist" aria-label="Documento de la vista previa">
+            <button class="pestana" type="button" role="tab" id="pestana-consentimiento" aria-selected="true" aria-controls="vista-previa">Consentimiento</button>
+            <button class="pestana" type="button" role="tab" id="pestana-informacion" aria-selected="false" aria-controls="vista-previa" tabindex="-1">Información</button>
+          </div>
+          <p class="vista-previa__nota">
+            <strong>Vista aproximada.</strong> Cada programa coloca el texto a su manera, así que las páginas pueden cortarse en otro sitio. El Word que descargues es el que vale.
+          </p>
+          <div class="vista-previa__marco" id="vista-previa" role="tabpanel" aria-labelledby="pestana-consentimiento" tabindex="0"></div>
+        </div>
+
         <p class="paso__ayuda">
           Descargarás un archivo ZIP con los dos documentos en Word y una guía breve (<code>LEEME.txt</code>).
         </p>

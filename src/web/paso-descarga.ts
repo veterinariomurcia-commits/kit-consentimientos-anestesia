@@ -105,13 +105,20 @@ function comprobarObligatorios(): boolean {
   return false;
 }
 
-/** Fabrica un documento con los datos de la clínica, los del paciente y los apartados elegidos. */
-async function fabricarWord(tipo: TipoDocumento, paciente: DatosPaciente): Promise<Uint8Array> {
+/**
+ * Prepara un documento con los datos de la clínica, los del paciente y los apartados elegidos.
+ * Lo usan la descarga y la vista previa (vista-previa.ts), para que las dos muestren lo mismo.
+ */
+export function prepararDocumento(tipo: TipoDocumento, paciente: DatosPaciente = datosPacienteUsables()): Documento {
   let doc: Documento = leerContenido(TEXTOS[tipo][estado.variante], estado.clinica, archivo(tipo, estado.variante));
   // Los datos del paciente se ponen antes de quitar apartados (D72).
   if (tipo === 'consentimiento' && Object.keys(paciente).length > 0) doc = rellenarCampos(doc, paciente).documento;
-  doc = elegirApartados(doc, estado.quitados[tipo]).documento;
-  return generarWord(doc, { datos: estado.clinica, color: estado.color, logo: estado.logo });
+  return elegirApartados(doc, estado.quitados[tipo]).documento;
+}
+
+/** Fabrica el Word de un documento. */
+async function fabricarWord(tipo: TipoDocumento, paciente: DatosPaciente): Promise<Uint8Array> {
+  return generarWord(prepararDocumento(tipo, paciente), { datos: estado.clinica, color: estado.color, logo: estado.logo });
 }
 
 async function fabricarZip(): Promise<Blob> {

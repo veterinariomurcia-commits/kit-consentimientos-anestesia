@@ -6,12 +6,14 @@ import { iniciarPasoClinica } from './web/paso-clinica.ts';
 import { iniciarPasoDescarga } from './web/paso-descarga.ts';
 import { iniciarPasoPaciente } from './web/paso-paciente.ts';
 import { iniciarRecordar } from './web/recordar.ts';
+import { iniciarVistaPrevia } from './web/vista-previa.ts';
 
 try {
   iniciarPasoClinica();
   iniciarPasoBloques();
   iniciarPasoPaciente();
   iniciarPasoDescarga();
+  iniciarVistaPrevia();
   // Al final: si hay datos recordados, se ponen en todos los pasos ya preparados.
   iniciarRecordar();
 } catch (e) {

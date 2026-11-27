@@ -44,9 +44,9 @@ Dar un nombre a cada hueco y casilla del consentimiento (titular, DNI, paciente,
 Página en pasos: 1) la clínica (datos obligatorios, logo, color y versión; teléfonos con el WhatsApp opcional, D24), 2) los bloques, 3) el paciente (opcional), 4) la descarga en Word (ZIP con los 2 documentos y `LEEME.txt`). Aviso legal. Diseño sencillo, profesional, accesible y adaptado a móvil.
 **Comprobación:** con `npm run dev`, Sira hace los cuatro pasos y descarga un ZIP que se abre bien. → Probado de principio a fin en un navegador sin ventana (ordenador y móvil); el ZIP trae 2 Word (6 y 3 páginas) y el `LEEME.txt` (D74–D88).
 
-## T9 · Vista previa [ ]
+## T9 · Vista previa [x]
 Vista previa del documento en la propia página, antes de descargar. Es aproximada: un navegador no puede mostrar el Word exactamente como Word.
-**Comprobación:** al cambiar un dato, un bloque o el color, la vista previa cambia.
+**Comprobación:** al cambiar un dato, un bloque o el color, la vista previa cambia. → Probado en un navegador sin ventana: cambian el nombre, el logo, el color, los apartados, los datos del paciente y la versión; dos pestañas; sin deslizar de lado a 390 px (D89–D93).
 
 ## T10 · Descarga en PDF [ ]
 Elegir una librería gratuita que dibuje el PDF en el navegador (proponer pros y contras a Sira antes de instalarla) y hacer que siga las reglas de diseño del Word. Embeber una fuente libre que mida como Arial (por ejemplo, Liberation Sans o Arimo), porque Arial no se puede incluir por su licencia. Botón "Descargar en PDF".

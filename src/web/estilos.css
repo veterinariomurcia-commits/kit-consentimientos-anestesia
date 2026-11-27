@@ -281,6 +281,149 @@ legend { padding: 0; }
 .pie__dentro img { flex: none; width: 48px; height: 48px; }
 .pie p { margin: 0; }
 
+/* --- Paso 4 · Vista previa (T9) --- */
+
+.vista-previa { margin-bottom: 20px; }
+.pestanas { display: flex; gap: 4px; border-bottom: 2px solid var(--acento); }
+.pestana {
+  font: inherit; font-weight: 600; font-size: .95rem;
+  padding: 9px 18px;
+  border: 1px solid var(--borde); border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: var(--fondo); color: var(--texto-suave);
+  cursor: pointer;
+}
+.pestana:hover { color: var(--acento-oscuro); }
+.pestana[aria-selected="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+.vista-previa__nota { margin: 10px 0; font-size: .88rem; color: var(--texto-suave); }
+.vista-previa__marco {
+  max-height: 75vh;
+  overflow-y: auto;
+  background: #dfe4e8;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* El folio. Todas las medidas van en puntos de Word multiplicados por --pt: así el folio entero
+   se encoge o se agranda con el ancho disponible, sin cambiar sus proporciones (A4 = 595,28 pt). */
+.vp-hojas { container-type: inline-size; max-width: 794px; margin: 0 auto; }
+.vp-hoja {
+  --pt: calc(100cqw / 595.28);
+  display: flex; flex-direction: column;
+  min-height: calc(841.89 * var(--pt));
+  margin-bottom: 16px;
+  padding: calc(39.7 * var(--pt)) calc(51 * var(--pt)) calc(20 * var(--pt));
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+  color: var(--vp-texto);
+  font-family: Arial, "Liberation Sans", Arimo, Helvetica, sans-serif;
+  font-size: calc(9.5 * var(--pt));
+  line-height: 1.25;
+  overflow-wrap: break-word;
+}
+.vp-hoja:last-child { margin-bottom: 0; }
+.vp-cuerpo { flex: 1; }
+.vp-hoja p { margin: 0; }
+.vp-pie {
+  margin-top: calc(12 * var(--pt)) !important;
+  padding-top: calc(5 * var(--pt));
+  border-top: 1px solid var(--vp-gris-borde);
+  font-size: calc(7.5 * var(--pt));
+  color: var(--vp-gris);
+}
+
+.vp-pendiente { background: #ff0; color: #000; padding: 0; }
+
+.vp-cabecera {
+  display: grid; grid-template-columns: 35% 65%; align-items: center;
+  padding-bottom: calc(7 * var(--pt));
+  border-bottom: calc(1.5 * var(--pt)) solid var(--vp-principal);
+}
+.vp-cabecera__logo img { display: block; object-fit: contain; }
+.vp-cabecera__datos { text-align: right; font-size: calc(8.5 * var(--pt)); color: var(--vp-gris); line-height: 1.3; }
+.vp-cabecera__datos .vp-nombre-clinica { font-size: calc(10.5 * var(--pt)); font-weight: 700; color: var(--vp-texto); margin-bottom: calc(2 * var(--pt)); }
+.vp-encabezado {
+  text-align: right; font-size: calc(7.5 * var(--pt)); color: var(--vp-gris);
+  padding-bottom: calc(2 * var(--pt)); margin-bottom: calc(10 * var(--pt)) !important;
+  border-bottom: 1px solid var(--vp-gris-borde);
+}
+
+.vp-titulo { font-size: calc(16 * var(--pt)); font-weight: 700; margin: calc(10 * var(--pt)) 0 calc(2 * var(--pt)) !important; line-height: 1.15; }
+.vp-subtitulo { color: var(--vp-gris); margin-bottom: calc(10 * var(--pt)) !important; }
+.vp-t1 { font-size: calc(11.5 * var(--pt)); font-weight: 700; color: var(--vp-principal); margin: calc(13 * var(--pt)) 0 calc(5 * var(--pt)) !important; line-height: 1.15; }
+.vp-t2 { font-size: calc(10 * var(--pt)); font-weight: 700; margin: calc(7 * var(--pt)) 0 calc(3 * var(--pt)) !important; line-height: 1.15; }
+.vp-p { margin-bottom: calc(5 * var(--pt)) !important; }
+
+.vp-lista { margin: 0 0 calc(5 * var(--pt)); padding-left: calc(12.75 * var(--pt)); }
+.vp-lista li { margin-bottom: calc(3 * var(--pt)); }
+.vp-lista li::marker { color: var(--vp-principal); }
+.vp-nota { font-size: calc(8 * var(--pt)); color: var(--vp-gris); line-height: 1.2; }
+.vp-letra-pequena { font-size: calc(8 * var(--pt)); line-height: 1.2; }
+.vp-nota .vp-p, .vp-letra-pequena .vp-p { margin-bottom: calc(4 * var(--pt)) !important; }
+
+.vp-casilla { font-family: "Segoe UI Symbol", "DejaVu Sans", "Apple Symbols", sans-serif; font-size: calc(11 * var(--pt)); line-height: 1; margin-left: .5em; }
+.vp-casilla:first-child { margin-left: 0; }
+.vp-hueco { display: inline-block; min-height: 1.1em; vertical-align: baseline; border-bottom: 1px solid var(--vp-gris); padding: 0 .25em; }
+.vp-hueco--corto { min-width: calc(85 * var(--pt)); }
+.vp-hueco--corto-celda { min-width: calc(42.5 * var(--pt)); }
+.vp-hueco--largo { min-width: 40%; }
+
+.vp-caja {
+  min-height: calc(45.4 * var(--pt));
+  margin: 0 0 calc(5 * var(--pt));
+  padding: calc(2.5 * var(--pt)) calc(5.5 * var(--pt));
+  border: 1px solid var(--vp-gris);
+  background: var(--vp-campo);
+  white-space: pre-wrap;
+}
+.vp-caja--grande { min-height: calc(113.4 * var(--pt)); }
+
+.vp-linea-firma { display: grid; margin: 0 0 calc(5 * var(--pt)); }
+.vp-linea-firma__texto { align-self: center; padding: 0 calc(5.5 * var(--pt)); }
+.vp-firma {
+  display: flex; align-items: flex-end;
+  min-height: calc(39.7 * var(--pt));
+  padding: 0 calc(5.5 * var(--pt)) calc(3 * var(--pt));
+  border: 1px dashed var(--vp-gris);
+  background: #fff;
+}
+.vp-firma__texto, .vp-celda--firma .vp-firma__texto { font-size: calc(7.5 * var(--pt)); color: var(--vp-gris); }
+
+.vp-destacado {
+  margin: 0 0 calc(5 * var(--pt));
+  padding: calc(7.5 * var(--pt)) calc(10 * var(--pt)) calc(2.5 * var(--pt));
+  border: calc(1 * var(--pt)) solid var(--vp-principal);
+  background: var(--vp-suave);
+}
+.vp-tabla + .vp-p, .vp-tabla-datos + .vp-p, .vp-caja + .vp-p, .vp-destacado + .vp-p { margin-top: calc(6 * var(--pt)) !important; }
+
+.vp-tabla, .vp-tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 calc(3 * var(--pt));
+  font-size: calc(8.5 * var(--pt));
+  line-height: 1.15;
+}
+.vp-tabla th, .vp-tabla td, .vp-tabla-datos th, .vp-tabla-datos td {
+  padding: calc(2.5 * var(--pt)) calc(5.5 * var(--pt));
+  text-align: left; vertical-align: middle;
+}
+.vp-tabla th, .vp-tabla td { border: 1px solid var(--vp-gris-borde); }
+.vp-tabla thead th { background: var(--vp-principal); color: var(--vp-sobre); font-weight: 700; }
+.vp-tabla tbody tr:nth-child(even) > * { background: var(--vp-filas); }
+.vp-tabla .vp-etiqueta { font-weight: 700; }
+.vp-tabla-datos { table-layout: fixed; }
+.vp-tabla-datos tr { border-top: 1px solid var(--vp-gris-borde); border-bottom: 1px solid var(--vp-gris-borde); }
+.vp-tabla-datos th { background: var(--vp-suave); font-weight: 700; height: calc(21.25 * var(--pt)); }
+.vp-celda--centro { text-align: center !important; }
+.vp-celda--campo .vp-campo { min-height: calc(15 * var(--pt)); background: var(--vp-campo); border-bottom: 1px solid var(--vp-gris); }
+.vp-tabla td.vp-celda--caja, .vp-tabla-datos td.vp-celda--caja {
+  height: calc(45.4 * var(--pt)); vertical-align: top; white-space: pre-wrap; background: var(--vp-campo) !important;
+}
+.vp-tabla td.vp-celda--caja-grande, .vp-tabla-datos td.vp-celda--caja-grande { height: calc(113.4 * var(--pt)); }
+.vp-tabla td.vp-celda--firma { height: calc(48.2 * var(--pt)); vertical-align: bottom; background: #fff !important; }
+.vp-tabla-datos tr:has(.vp-celda--caja) th { vertical-align: top; }
+
 /* --- Móvil --- */
 
 @media (max-width: 680px) {
@@ -300,6 +443,9 @@ legend { padding: 0; }
   .prueba-otra { flex-wrap: wrap; gap: 4px; }
   .prueba-otra input { width: 100%; }
   .boton--principal { width: 100%; }
+  .vista-previa__marco { padding: 8px; max-height: 70vh; }
+  .vp-hoja { margin-bottom: 8px; }
+  .pestana { flex: 1; padding: 9px 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

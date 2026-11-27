@@ -360,6 +360,20 @@ Por qué: evitar errores de clic en preguntas que solo admiten una respuesta.
 ⚠️ REVISAR: el cambio de "titular" por "responsable legal" en los textos legales (D87) entra en la revisión legal pendiente (ver "Pendiente de decidir"): que la asesoría confirme el término.
 
 **Pendiente:**
-- T9: la vista previa irá en el paso 4, encima del botón de descarga.
+- ~~T9: la vista previa irá en el paso 4, encima del botón de descarga.~~ Hecho (D90).
 - T10: el botón "Descargar en PDF" irá junto al de Word.
 - T12: al publicar en GitHub Pages, comprobar la ruta base de Vite (la web irá en una subcarpeta de la dirección).
+
+## Decisiones de la tarea T9 · Vista previa (27/11/2026)
+
+**D89 · La vista previa se dibuja con código propio, sin librerías (opción A, aprobada por Sira).** `src/web/vista-previa.ts` recorre el mismo documento que el generador del Word y lo convierte en HTML. Por qué: no añade ninguna pieza que mantener (regla 6), es rápida y muestra exactamente lo mismo que el Word: mismos apartados quitados, misma numeración, mismos huecos amarillos y mismos datos del paciente. Se descartó la opción B (`docx-preview`, que pinta el Word ya fabricado): una dependencia más, más lenta y tampoco corta las páginas como Word.
+
+**D90 · Dónde y cómo se ve (aprobado por Sira).** En el paso 4, que pasa a llamarse "Vista previa y descarga", encima del botón de descarga. Dos pestañas, «Consentimiento» e «Información», que se manejan también con las flechas del teclado. La vista previa va en un marco gris con su propia barra para bajar (como mucho, el 75 % del alto de la pantalla), para que el botón de descarga no quede muy lejos. Encima, el aviso: "Vista aproximada. Cada programa coloca el texto a su manera, así que las páginas pueden cortarse en otro sitio. El Word que descargues es el que vale."
+
+**D91 · Un folio por cada salto de página de los textos.** El navegador no sabe dónde corta Word cada página, así que solo se empieza un folio nuevo donde `contenido/` pone `::: salto-de-pagina` (el consentimiento sale en 3 folios; en Word son 6 páginas). Cada folio tiene, como mínimo, el alto de un A4. El primero lleva la cabecera con el logo y los datos; los demás, solo el nombre de la clínica arriba (como la D47). Todos llevan abajo "{pie} · Modelo v1.0", sin "Página X de Y", porque no se sabe.
+
+**D92 · El folio usa las medidas del Word, en proporción.** Arial (o Liberation Sans / Arimo si no está), tamaños y márgenes de la D46, colores de la paleta de la clínica (D29) y las mismas piezas: casillas ☐/☒, huecos con línea debajo, cajas grises, recuadros de firma discontinuos, tabla de datos, tablas con cabecera de color y recuadros destacados. Todo se mide en "puntos de Word" multiplicados por el ancho disponible, así que el folio se encoge en el móvil sin descolocarse y sin que haya que deslizar de lado (se puede ampliar con los dedos). Las columnas de las tablas las reparte el navegador, no el cálculo del Word (D31, D51): pueden salir algo distintas.
+
+**D93 · Se actualiza sola, 0,2 segundos después del último cambio.** Escucha los mismos avisos de cambio que ya usan los pasos (`alCambiar`): datos y logo de la clínica, color, versión, apartados y datos del paciente. Espera a que se deje de escribir para no ir a tirones. Los datos del paciente solo se dibujan en la pantalla: siguen sin guardarse en ningún sitio (D60). Para que la vista previa y el Word salgan siempre de lo mismo, la preparación del documento (datos de la clínica, del paciente y apartados elegidos) está ahora en una sola función, `prepararDocumento` (`src/web/paso-descarga.ts`), que usan las dos.
+
+**Comprobado en T9** con Edge sin ventana, manejado desde un script de prueba temporal (no se queda en el proyecto): sin datos salen los huecos amarillos; al escribir el nombre, subir el logo, cambiar a granate, quitar el apartado 3 (los títulos pasan de 8 a 7 y sale «[apartado quitado]» en amarillo), escribir un dato del paciente y marcar una casilla (☒), y pasar a la versión cálida («tutor/a»), la vista previa cambia; la pestaña «Información» funciona; a 390 px de ancho no hay que deslizar de lado; sin errores en la consola. `npm run build` y `npm run muestras` (13 Word) sin errores; los Word no cambian.
