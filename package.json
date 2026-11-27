@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "docx": "9.16.1",
-    "jszip": "3.10.2"
+    "jszip": "3.10.2",
+    "pdfmake": "0.3.14"
   },
   "devDependencies": {
     "@types/node": "26.6.11",
+    "@types/pdfmake": "0.3.3",
     "typescript": "7.0.2",
     "vite": "8.4.0"
   }

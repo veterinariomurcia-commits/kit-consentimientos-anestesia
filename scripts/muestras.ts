@@ -15,8 +15,13 @@
 //
 // Datos del paciente (T7): las 2 versiones del consentimiento con un paciente ficticio
 // (src/muestras/paciente-ejemplo.ts), para compararlas con las de los huecos en blanco.
+//
+// PDF (T10): de cada muestra se fabrica también el PDF con el mismo generador que la web, en
+// salida/pdf-web/ (aparte de salida/pdf/, donde van los Word convertidos por LibreOffice, para
+// poder comparar los dos).
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { elegirApartados } from '../src/contenido/bloques.ts';
 import { rellenarCampos } from '../src/contenido/campos.ts';
@@ -26,12 +31,20 @@ import { DATOS_VACIOS } from '../src/contenido/variables.ts';
 import { COLOR_POR_DEFECTO } from '../src/generador/color.ts';
 import { ErrorGenerador, generarWord } from '../src/generador/generador.ts';
 import { detectarTipo, type Logo } from '../src/generador/imagen.ts';
+import { prepararPdfMake, type PdfMake } from '../src/generador-pdf/fuentes.ts';
+import { generarPdf } from '../src/generador-pdf/generador-pdf.ts';
 import { CLINICA_EJEMPLO } from '../src/muestras/clinica-ejemplo.ts';
 import { PACIENTE_EJEMPLO } from '../src/muestras/paciente-ejemplo.ts';
 
 const raiz = new URL('../', import.meta.url);
 const carpetaSalida = fileURLToPath(new URL('salida/', raiz));
 mkdirSync(carpetaSalida, { recursive: true });
+const carpetaPdf = fileURLToPath(new URL('salida/pdf-web/', raiz));
+mkdirSync(carpetaPdf, { recursive: true });
+
+// pdfmake en su versión para Node, con las fuentes leídas del disco.
+const pdfMake = createRequire(import.meta.url)('pdfmake') as PdfMake;
+const fabricaPdf = await prepararPdfMake(pdfMake, async (archivo) => new Uint8Array(readFileSync(archivo)));
 
 const datosLogo = new Uint8Array(readFileSync(new URL('marca/logo-ejemplo.png', raiz)));
 const logoEjemplo: Logo = { datos: datosLogo, tipo: detectarTipo(datosLogo) };
@@ -133,12 +146,15 @@ for (const m of MUESTRAS) {
     // Primero los datos del paciente (sus nombres se comprueban con el documento entero) y después los apartados.
     const relleno = rellenarCampos(leido, m.paciente ?? {});
     const { documento, avisos } = elegirApartados(relleno.documento, m.quitar ?? []);
-    const bytes = await generarWord(documento, { datos: m.datos, color: COLOR_POR_DEFECTO, logo: m.logo });
+    const opciones = { datos: m.datos, color: COLOR_POR_DEFECTO, logo: m.logo };
+    const bytes = await generarWord(documento, opciones);
     writeFileSync(`${carpetaSalida}${m.salida}`, bytes);
+    const pdf = await generarPdf(documento, opciones, fabricaPdf);
+    writeFileSync(`${carpetaPdf}${m.salida.replace(/\.docx$/, '.pdf')}`, pdf);
     const n = m.quitar?.length ?? 0;
     const quitados = n === 0 ? '' : `  · sin ${n === 1 ? 'el apartado' : 'los apartados'} ${m.quitar!.join(', ')}`;
     const conPaciente = m.paciente ? '  · con datos del paciente' : '';
-    console.log(`✔ salida/${m.salida}  (${Math.round(bytes.length / 1024)} KB)${quitados}${conPaciente}`);
+    console.log(`✔ salida/${m.salida}  (${Math.round(bytes.length / 1024)} KB, PDF ${Math.round(pdf.length / 1024)} KB)${quitados}${conPaciente}`);
     for (const a of [...relleno.avisos, ...avisos]) console.log(`   ⚠ ${a.mensaje}`);
   } catch (e) {
     hayErrores = true;

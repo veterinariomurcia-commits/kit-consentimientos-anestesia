@@ -1,5 +1,9 @@
-// Paso 4 · La descarga: comprueba los datos obligatorios, fabrica los dos Word con el mismo
-// generador que `npm run muestras` y los mete en un ZIP con el LEEME.txt.
+// Paso 4 · La descarga: comprueba los datos obligatorios, fabrica los dos documentos en Word o
+// en PDF con los mismos generadores que `npm run muestras` y los mete en un ZIP con el LEEME.txt.
+//
+// El PDF (T10) necesita la librería pdfmake y las fuentes (unos 3 MB). No se cargan al abrir la
+// web, sino la primera vez que se pulsa "Descargar en PDF": quien solo quiera el Word no lo nota.
+// Se cargan de la propia web, nunca de fuera (D11).
 
 import JSZip from 'jszip';
 import { elegirApartados, listarApartados } from '../contenido/bloques.ts';
@@ -7,6 +11,8 @@ import { rellenarCampos } from '../contenido/campos.ts';
 import { ErrorContenido, leerContenido } from '../contenido/lector.ts';
 import type { DatosPaciente, Documento } from '../contenido/tipos.ts';
 import { ErrorGenerador, generarWord } from '../generador/generador.ts';
+import type { FabricaPdf, PdfMake } from '../generador-pdf/fuentes.ts';
+import type { generarPdf as GenerarPdf } from '../generador-pdf/generador-pdf.ts';
 import { archivo, NOMBRE_DOCUMENTO, TEXTOS, type TipoDocumento } from './contenidos.ts';
 import { crear, porId } from './dom.ts';
 import { estado, estructura } from './estado.ts';
@@ -14,40 +20,56 @@ import { textoLeeme } from './leeme.ts';
 import { OBLIGATORIOS } from './paso-clinica.ts';
 import { datosPacienteUsables } from './paso-paciente.ts';
 
+/** Formato de la descarga. */
+type Formato = 'word' | 'pdf';
+
+/** Nombre y descripción de cada documento dentro del ZIP (la extensión depende del formato). */
 const ARCHIVOS: Record<TipoDocumento, { nombre: string; descripcion: string }> = {
   consentimiento: {
-    nombre: 'consentimiento-anestesia.docx',
+    nombre: 'consentimiento-anestesia',
     descripcion: 'consentimiento informado de anestesia y sedación (se firma en la clínica).',
   },
   informacion: {
-    nombre: 'informacion-anestesia.docx',
+    nombre: 'informacion-anestesia',
     descripcion: 'información sobre la anestesia y la sedación, para entregar al cliente.',
   },
 };
 
+const EXTENSION: Record<Formato, string> = { word: '.docx', pdf: '.pdf' };
+
 export function iniciarPasoDescarga(): void {
-  const boton = porId<HTMLButtonElement>('descargar-word');
-  boton.addEventListener('click', async () => {
-    if (!comprobarObligatorios()) return;
-    boton.disabled = true;
-    boton.setAttribute('aria-busy', 'true');
-    estadoDescarga('Preparando los documentos…');
-    try {
-      const zip = await fabricarZip();
-      descargar(zip, nombreZip());
-      estadoDescarga('¡Listo! Busca el archivo ZIP en tu carpeta de descargas.', 'ok');
-    } catch (e) {
-      const detalle = e instanceof ErrorContenido || e instanceof ErrorGenerador ? e.message : String(e);
+  const botones: [HTMLButtonElement, Formato][] = [
+    [porId<HTMLButtonElement>('descargar-word'), 'word'],
+    [porId<HTMLButtonElement>('descargar-pdf'), 'pdf'],
+  ];
+  for (const [boton, formato] of botones) {
+    boton.addEventListener('click', async () => {
+      if (!comprobarObligatorios()) return;
+      // Mientras se prepara una descarga, los dos botones esperan.
+      for (const [b] of botones) b.disabled = true;
+      boton.setAttribute('aria-busy', 'true');
       estadoDescarga(
-        `No se han podido preparar los documentos. Es un fallo de la herramienta, no de tus datos. Detalle: ${detalle}`,
-        'error',
+        formato === 'pdf' && !pdfCargado
+          ? 'Preparando los PDF… La primera vez tarda unos segundos más.'
+          : 'Preparando los documentos…',
       );
-      console.error(e);
-    } finally {
-      boton.disabled = false;
-      boton.removeAttribute('aria-busy');
-    }
-  });
+      try {
+        const zip = await fabricarZip(formato);
+        descargar(zip, nombreZip(formato));
+        estadoDescarga('¡Listo! Busca el archivo ZIP en tu carpeta de descargas.', 'ok');
+      } catch (e) {
+        const detalle = e instanceof ErrorContenido || e instanceof ErrorGenerador ? e.message : String(e);
+        estadoDescarga(
+          `No se han podido preparar los documentos. Es un fallo de la herramienta, no de tus datos. Detalle: ${detalle}`,
+          'error',
+        );
+        console.error(e);
+      } finally {
+        for (const [b] of botones) b.disabled = false;
+        boton.removeAttribute('aria-busy');
+      }
+    });
+  }
 }
 
 function estadoDescarga(texto: string, clase: 'ok' | 'error' | '' = ''): void {
@@ -116,22 +138,57 @@ export function prepararDocumento(tipo: TipoDocumento, paciente: DatosPaciente =
   return elegirApartados(doc, estado.quitados[tipo]).documento;
 }
 
-/** Fabrica el Word de un documento. */
-async function fabricarWord(tipo: TipoDocumento, paciente: DatosPaciente): Promise<Uint8Array> {
-  return generarWord(prepararDocumento(tipo, paciente), { datos: estado.clinica, color: estado.color, logo: estado.logo });
+// --- PDF: se carga la primera vez que hace falta ---
+
+/** Ya se han cargado pdfmake y las fuentes (para avisar de que la primera vez tarda más). */
+let pdfCargado = false;
+let cargaPdf: Promise<{ fabrica: FabricaPdf; generarPdf: typeof GenerarPdf }> | null = null;
+
+/** Carga pdfmake (su versión para el navegador), las fuentes y el generador de PDF. */
+function cargarPdf(): Promise<{ fabrica: FabricaPdf; generarPdf: typeof GenerarPdf }> {
+  cargaPdf ??= (async () => {
+    const [modulo, { prepararPdfMake }, { generarPdf }] = await Promise.all([
+      import('pdfmake/build/pdfmake.js'),
+      import('../generador-pdf/fuentes.ts'),
+      import('../generador-pdf/generador-pdf.ts'),
+    ]);
+    // pdfmake es un módulo "antiguo": según cómo se empaquete, llega dentro de `default` o tal cual.
+    const pdfMake = ((modulo as { default?: unknown }).default ?? modulo) as PdfMake;
+    const fabrica = await prepararPdfMake(pdfMake, async (archivo) => {
+      const respuesta = await fetch(archivo);
+      if (!respuesta.ok) throw new Error(`No se ha podido cargar la fuente ${archivo.pathname} (${respuesta.status}).`);
+      return new Uint8Array(await respuesta.arrayBuffer());
+    });
+    pdfCargado = true;
+    return { fabrica, generarPdf };
+  })();
+  // Si falla (por ejemplo, porque se ha cortado la conexión), se puede volver a intentar.
+  cargaPdf.catch(() => (cargaPdf = null));
+  return cargaPdf;
 }
 
-async function fabricarZip(): Promise<Blob> {
+/** Fabrica un documento en el formato elegido. */
+async function fabricar(tipo: TipoDocumento, paciente: DatosPaciente, formato: Formato): Promise<Uint8Array> {
+  const doc = prepararDocumento(tipo, paciente);
+  const opciones = { datos: estado.clinica, color: estado.color, logo: estado.logo };
+  if (formato === 'word') return generarWord(doc, opciones);
+  const { fabrica, generarPdf } = await cargarPdf();
+  return generarPdf(doc, opciones, fabrica);
+}
+
+async function fabricarZip(formato: Formato): Promise<Blob> {
   const paciente = datosPacienteUsables();
   const tipos: TipoDocumento[] = ['consentimiento', 'informacion'];
+  const archivos = tipos.map((t) => ({ ...ARCHIVOS[t], nombre: ARCHIVOS[t].nombre + EXTENSION[formato] }));
   const zip = new JSZip();
-  for (const tipo of tipos) zip.file(ARCHIVOS[tipo].nombre, await fabricarWord(tipo, paciente));
+  for (const [i, tipo] of tipos.entries()) zip.file(archivos[i].nombre, await fabricar(tipo, paciente, formato));
   zip.file(
     'LEEME.txt',
     textoLeeme({
+      formato,
       nombreClinica: estado.clinica.nombreClinica,
       variante: estado.variante,
-      archivos: tipos.map((t) => ARCHIVOS[t]),
+      archivos,
       quitados: tipos.map((t) => ({
         documento: NOMBRE_DOCUMENTO[t],
         apartados: listarApartados(estructura(t))
@@ -145,8 +202,12 @@ async function fabricarZip(): Promise<Blob> {
   return zip.generateAsync({ type: 'blob', mimeType: 'application/zip' });
 }
 
-/** "Clínica Veterinaria Ejemplo" → "kit-anestesia-clinica-veterinaria-ejemplo.zip". */
-function nombreZip(): string {
+/**
+ * "Clínica Veterinaria Ejemplo" → "kit-anestesia-clinica-veterinaria-ejemplo.zip" (Word) o
+ * "kit-anestesia-clinica-veterinaria-ejemplo-pdf.zip" (PDF).
+ */
+function nombreZip(formato: Formato): string {
+  const fin = formato === 'pdf' ? '-pdf.zip' : '.zip';
   const base = estado.clinica.nombreClinica
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
@@ -154,7 +215,7 @@ function nombreZip(): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 60);
-  return base ? `kit-anestesia-${base}.zip` : 'kit-anestesia.zip';
+  return base ? `kit-anestesia-${base}${fin}` : `kit-anestesia${fin}`;
 }
 
 function descargar(datos: Blob, nombre: string): void {

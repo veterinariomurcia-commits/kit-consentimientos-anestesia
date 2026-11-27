@@ -82,15 +82,43 @@ export const runCasilla = (marcada = false) =>
  * sigue subrayado, para que se vea que es un campo y se pueda corregir a mano.
  */
 export function runHueco(anchoTwips: number, tamanoPt: number, valor?: string): TextRun {
+  return new TextRun({ text: textoHueco(anchoTwips, tamanoPt, valor), style: ESTILO.hueco });
+}
+
+/**
+ * Texto de un hueco para escribir: tantos espacios fijos como quepan en `anchoTwips` y, si hay
+ * un dato del paciente, el dato delante. Lo usan el Word (runHueco) y el PDF (T10), para que los
+ * huecos midan lo mismo en los dos.
+ */
+export function textoHueco(anchoTwips: number, tamanoPt: number, valor?: string): string {
   const anchoEspacio = EM_ESPACIO_FIJO * em(tamanoPt);
   if (valor) {
     const anchoTexto = (valor.length + 1) * EM_LETRA * em(tamanoPt);
     const resto = Math.max(2, Math.round((anchoTwips - anchoTexto) / anchoEspacio));
-    return new TextRun({ text: `${ESPACIO_FIJO}${valor}${ESPACIO_FIJO.repeat(resto)}`, style: ESTILO.hueco });
+    return `${ESPACIO_FIJO}${valor}${ESPACIO_FIJO.repeat(resto)}`;
   }
-  const cuantos = Math.max(4, Math.round(anchoTwips / anchoEspacio));
-  return new TextRun({ text: ESPACIO_FIJO.repeat(cuantos), style: ESTILO.hueco });
+  return ESPACIO_FIJO.repeat(Math.max(4, Math.round(anchoTwips / anchoEspacio)));
 }
+
+/**
+ * Texto de un tramo de texto normal (`linea[i]`) con los espacios junto a las casillas ajustados:
+ *   - el espacio que sigue a una casilla no se parte: "☐ Perro" nunca se separa en dos líneas;
+ *   - antes de la casilla siguiente, un espacio ancho (1 em) para separar bien las opciones:
+ *     "☐ Perro   ☐ Gato". Se puede partir por él, como por un espacio normal.
+ */
+export function textoJuntoACasillas(linea: Linea, i: number): string {
+  const t = linea[i];
+  if (t.tipo !== 'texto') return '';
+  const trasCasilla = linea[i - 1]?.tipo === 'casilla' && t.texto.startsWith(' ');
+  let texto = trasCasilla ? ESPACIO_FIJO + t.texto.slice(1) : t.texto;
+  if (linea[i + 1]?.tipo === 'casilla' && texto.endsWith(' ') && texto.trim() !== '') {
+    texto = texto.slice(0, -1) + ESPACIO_ANCHO;
+  }
+  return texto;
+}
+
+/** Espacio ancho (U+2003, 1 em) entre una opción y la casilla siguiente. */
+const ESPACIO_ANCHO = ' ';
 
 /**
  * Texto de un dato del paciente que puede tener varias líneas (las cajas): cada salto de línea

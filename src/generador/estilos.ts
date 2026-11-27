@@ -64,7 +64,7 @@ export const LISTA = {
  * Tamaños en medios puntos. Son los de los PDF de referencia, redondeados (T5): así cada documento
  * ocupa las mismas páginas que la referencia.
  */
-const TAMANO = {
+export const TAMANO = {
   cuerpo: 19, // 9,5 pt
   nota: 16, // 8 pt
   titulo: 32, // 16 pt
@@ -80,7 +80,26 @@ const TAMANO = {
 };
 
 /** Interlineado normal (264 = 1,1 líneas). */
-const INTERLINEADO = 264;
+export const INTERLINEADO = 264;
+
+/**
+ * Espacio antes y después de cada tipo de párrafo (en twips: 20 = 1 pt) e interlineado (240 = una
+ * línea sencilla). Están aquí aparte para que el PDF (T10) use exactamente los mismos.
+ * Si un estilo no trae `line`, usa el interlineado del texto normal.
+ */
+export const ESPACIADO = {
+  normal: { before: 0, after: 100, line: INTERLINEADO },
+  titulo: { before: 200, after: 40, line: 240 },
+  titulo1: { before: 260, after: 100, line: 240 },
+  titulo2: { before: 140, after: 60, line: 240 },
+  subtitulo: { before: 0, after: 200 },
+  elementoLista: { before: 0, after: 60 },
+  nota: { before: 0, after: 80, line: 240 },
+  textoTabla: { before: 0, after: 0, line: 240 },
+  nombreClinica: { before: 0, after: 40, line: 240 },
+  datosClinica: { before: 0, after: 0, line: 252 },
+  sencillo: { before: 0, after: 0, line: 240 },
+} as const;
 
 /** Sangría de las listas: la viñeta va pegada al margen y el texto empieza a 0,45 cm, como en la referencia. */
 export const SANGRIA_LISTA = { left: 255, hanging: 255 };
@@ -91,19 +110,19 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
     default: {
       document: {
         run: { ...fuente, size: TAMANO.cuerpo, color: TEXTO_OSCURO, language: { value: 'es-ES' } },
-        paragraph: { spacing: { before: 0, after: 100, line: INTERLINEADO } },
+        paragraph: { spacing: ESPACIADO.normal },
       },
       title: {
         run: { ...fuente, size: TAMANO.titulo, bold: true, color: TEXTO_OSCURO },
-        paragraph: { spacing: { before: 200, after: 40, line: 240 }, keepNext: true, keepLines: true },
+        paragraph: { spacing: ESPACIADO.titulo, keepNext: true, keepLines: true },
       },
       heading1: {
         run: { ...fuente, size: TAMANO.titulo1, bold: true, color: paleta.principal },
-        paragraph: { spacing: { before: 260, after: 100, line: 240 }, keepNext: true, keepLines: true },
+        paragraph: { spacing: ESPACIADO.titulo1, keepNext: true, keepLines: true },
       },
       heading2: {
         run: { ...fuente, size: TAMANO.titulo2, bold: true, color: TEXTO_OSCURO },
-        paragraph: { spacing: { before: 140, after: 60, line: 240 }, keepNext: true, keepLines: true },
+        paragraph: { spacing: ESPACIADO.titulo2, keepNext: true, keepLines: true },
       },
     },
     paragraphStyles: [
@@ -114,7 +133,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         next: 'Normal',
         quickFormat: true,
         run: { ...fuente, size: TAMANO.subtitulo, color: GRIS },
-        paragraph: { spacing: { before: 0, after: 200 }, keepNext: true },
+        paragraph: { spacing: ESPACIADO.subtitulo, keepNext: true },
       },
       {
         id: ESTILO.elementoLista,
@@ -122,7 +141,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         basedOn: 'Normal',
         quickFormat: true,
         run: fuente,
-        paragraph: { spacing: { before: 0, after: 60 } },
+        paragraph: { spacing: ESPACIADO.elementoLista },
       },
       {
         id: ESTILO.nota,
@@ -130,7 +149,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         basedOn: 'Normal',
         quickFormat: true,
         run: { ...fuente, size: TAMANO.nota, color: GRIS },
-        paragraph: { spacing: { before: 0, after: 80, line: 240 } },
+        paragraph: { spacing: ESPACIADO.nota },
       },
       {
         id: ESTILO.letraPequena,
@@ -138,7 +157,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         basedOn: 'Normal',
         quickFormat: true,
         run: { ...fuente, size: TAMANO.nota, color: TEXTO_OSCURO },
-        paragraph: { spacing: { before: 0, after: 80, line: 240 } },
+        paragraph: { spacing: ESPACIADO.nota },
       },
       {
         id: ESTILO.textoTabla,
@@ -146,7 +165,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         basedOn: 'Normal',
         quickFormat: true,
         run: { ...fuente, size: TAMANO.tabla },
-        paragraph: { spacing: { before: 0, after: 0, line: 240 } },
+        paragraph: { spacing: ESPACIADO.textoTabla },
       },
       {
         id: ESTILO.cabeceraTabla,
@@ -168,14 +187,14 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         name: 'Nombre de la clínica',
         basedOn: 'Normal',
         run: { ...fuente, size: TAMANO.nombreClinica, bold: true, color: TEXTO_OSCURO },
-        paragraph: { alignment: AlignmentType.RIGHT, spacing: { before: 0, after: 40, line: 240 } },
+        paragraph: { alignment: AlignmentType.RIGHT, spacing: ESPACIADO.nombreClinica },
       },
       {
         id: ESTILO.datosClinica,
         name: 'Datos de la clínica',
         basedOn: 'Normal',
         run: { ...fuente, size: TAMANO.datosClinica, color: GRIS },
-        paragraph: { alignment: AlignmentType.RIGHT, spacing: { before: 0, after: 0, line: 252 } },
+        paragraph: { alignment: AlignmentType.RIGHT, spacing: ESPACIADO.datosClinica },
       },
       {
         id: ESTILO.textoFirma,
@@ -183,7 +202,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         basedOn: 'Normal',
         quickFormat: true,
         run: { ...fuente, size: TAMANO.firma, color: GRIS },
-        paragraph: { spacing: { before: 0, after: 0, line: 240 } },
+        paragraph: { spacing: ESPACIADO.sencillo },
       },
       {
         id: ESTILO.encabezado,
@@ -192,7 +211,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         run: { ...fuente, size: TAMANO.pie, color: GRIS },
         paragraph: {
           alignment: AlignmentType.RIGHT,
-          spacing: { before: 0, after: 0, line: 240 },
+          spacing: ESPACIADO.sencillo,
           border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: GRIS_BORDE, space: 2 } },
         },
       },
@@ -212,7 +231,7 @@ export function crearEstilos(paleta: Paleta): IStylesOptions {
         name: 'Pie del documento',
         basedOn: 'Normal',
         run: { ...fuente, size: TAMANO.pie, color: GRIS },
-        paragraph: { spacing: { before: 0, after: 0, line: 240 } },
+        paragraph: { spacing: ESPACIADO.sencillo },
       },
     ],
     characterStyles: [

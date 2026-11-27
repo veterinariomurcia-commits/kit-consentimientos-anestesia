@@ -4,6 +4,8 @@
 import { VERSION_MODELO } from '../generador/generador.ts';
 
 export interface DatosLeeme {
+  /** Formato de los documentos del ZIP: la guía cambia un poco (en el PDF no se puede editar). */
+  formato: 'word' | 'pdf';
   nombreClinica: string;
   variante: 'neutra' | 'calida';
   /** Nombres de los archivos Word del ZIP, con lo que es cada uno. */
@@ -27,6 +29,7 @@ export function textoLeeme(d: DatosLeeme): string {
     'QUÉ HAY EN ESTE ZIP',
     '-------------------',
     ...d.archivos.map((a) => `- ${a.nombre}: ${a.descripcion}`),
+    ...(d.formato === 'pdf' ? ['  Los dos en PDF: listos para imprimir o para subirlos a una plataforma de firma online.'] : []),
     '- LEEME.txt: esta guía.',
     '',
   ];
@@ -38,19 +41,34 @@ export function textoLeeme(d: DatosLeeme): string {
     lineas.push('');
   }
 
-  lineas.push(
-    'ANTES DE USARLOS',
-    '----------------',
-    '1. Abre los dos documentos y revísalos enteros.',
-    '2. Lo que sale resaltado en amarillo es un dato que falta (por ejemplo, [CIF]) o una',
-    '   referencia a un apartado que has quitado ([apartado quitado]). Escribe el dato o',
-    '   corrige la frase, y quita el resaltado.',
-    '3. Los huecos y las casillas en blanco son para rellenarlos a mano o en el ordenador.',
-    '4. Puedes cambiar cualquier texto. Para cambiar el color o la letra de todo el documento,',
-    '   cambia los estilos de Word (Normal, Título 1, Título 2…) en lugar de cada párrafo.',
-    '5. Para poner otro logo: haz clic en el logo y elige "Cambiar imagen".',
-    '',
-  );
+  if (d.formato === 'pdf') {
+    lineas.push(
+      'ANTES DE USARLOS',
+      '----------------',
+      '1. Abre los dos documentos y revísalos enteros.',
+      '2. Lo que sale resaltado en amarillo es un dato que falta (por ejemplo, [CIF]) o una',
+      '   referencia a un apartado que has quitado ([apartado quitado]). Un PDF no se puede',
+      '   corregir: vuelve a la web, completa el dato o el apartado y descárgalos otra vez.',
+      '3. Los huecos y las casillas en blanco son para rellenarlos a mano al imprimir, o en la',
+      '   plataforma de firma online.',
+      '4. Si quieres cambiar algún texto, descarga los documentos en Word: se pueden editar.',
+      '',
+    );
+  } else {
+    lineas.push(
+      'ANTES DE USARLOS',
+      '----------------',
+      '1. Abre los dos documentos y revísalos enteros.',
+      '2. Lo que sale resaltado en amarillo es un dato que falta (por ejemplo, [CIF]) o una',
+      '   referencia a un apartado que has quitado ([apartado quitado]). Escribe el dato o',
+      '   corrige la frase, y quita el resaltado.',
+      '3. Los huecos y las casillas en blanco son para rellenarlos a mano o en el ordenador.',
+      '4. Puedes cambiar cualquier texto. Para cambiar el color o la letra de todo el documento,',
+      '   cambia los estilos de Word (Normal, Título 1, Título 2…) en lugar de cada párrafo.',
+      '5. Para poner otro logo: haz clic en el logo y elige "Cambiar imagen".',
+      '',
+    );
+  }
 
   if (d.conPaciente) {
     lineas.push(

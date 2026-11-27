@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Herramienta gratuita para descargar, con los datos de tu clínica, el consentimiento informado y la información de anestesia y sedación en Word." />
+    <meta name="description" content="Herramienta gratuita para descargar, con los datos de tu clínica, el consentimiento informado y la información de anestesia y sedación en Word o en PDF." />
     <meta name="theme-color" content="#2E6A80" />
     <title>Kit de consentimientos de anestesia</title>
     <link rel="icon" type="image/svg+xml" href="/src/web/recursos/marca-cvmn.svg" />
@@ -32,7 +32,7 @@
           <li>Sin registro ni cookies</li>
         </ul>
         <p>
-          Selecciona el estilo comunicativo, el color de los títulos y recuadros, tu logo y cumplimenta cada apartado con los datos que quieres que reflejen los documentos que se generarán. Podrás descargar 2 archivos en Word (información para el cliente y el consentimiento informado); y en tu PC los podrás seguir editando si lo prefieres o guardar como PDF. Está preparado para firmar online.
+          Selecciona el estilo comunicativo, el color de los títulos y recuadros, tu logo y cumplimenta cada apartado con los datos que quieres que reflejen los documentos que se generarán. Podrás descargar los 2 documentos (información para el cliente y el consentimiento informado) en Word, para seguir editándolos en tu PC, o en PDF, listos para imprimir. Está preparado para firmar online.
           Todo se prepara aquí mismo, en tu navegador: no se envía nada a ningún sitio.
         </p>
         <p class="aviso-legal" role="note">
@@ -186,16 +186,19 @@
             <button class="pestana" type="button" role="tab" id="pestana-informacion" aria-selected="false" aria-controls="vista-previa" tabindex="-1">Información</button>
           </div>
           <p class="vista-previa__nota">
-            <strong>Vista aproximada.</strong> Cada programa coloca el texto a su manera, así que las páginas pueden cortarse en otro sitio. El Word que descargues es el que vale.
+            <strong>Vista aproximada.</strong> Cada programa coloca el texto a su manera, así que las páginas pueden cortarse en otro sitio. Los documentos que descargues son los que valen.
           </p>
           <div class="vista-previa__marco" id="vista-previa" role="tabpanel" aria-labelledby="pestana-consentimiento" tabindex="0"></div>
         </div>
 
         <p class="paso__ayuda">
-          Descargarás un archivo ZIP con los dos documentos en Word y una guía breve (<code>LEEME.txt</code>).
+          Descargarás un archivo ZIP con los dos documentos y una guía breve (<code>LEEME.txt</code>): en Word, para seguir editándolos, o en PDF, listos para imprimir o para firmar online.
         </p>
         <div id="descarga-errores" tabindex="-1"></div>
-        <button class="boton boton--principal" type="button" id="descargar-word">Descargar en Word (ZIP)</button>
+        <div class="descargas">
+          <button class="boton boton--principal" type="button" id="descargar-word">Descargar en Word (ZIP)</button>
+          <button class="boton boton--principal" type="button" id="descargar-pdf">Descargar en PDF (ZIP)</button>
+        </div>
         <p class="mensaje" id="descarga-estado" aria-live="polite" hidden></p>
         <p class="aviso-legal" role="note">
           <strong>Modelo orientativo.</strong> Cada clínica debe revisarlo y adaptarlo con su asesoría legal y su proveedor de protección de datos antes de usarlo.

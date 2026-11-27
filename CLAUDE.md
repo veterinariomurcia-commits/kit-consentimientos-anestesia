@@ -40,7 +40,7 @@ El veterinario sigue unos pasos en la web (ver D57–D60 en `docs/decisiones.md`
 
 - **Web estática** (solo archivos HTML, CSS y JS), sin servidor ni base de datos.
 - **Generación del Word en el navegador** con la librería `docx`.
-- **Generación del PDF en el navegador** con una librería que dibuja el PDF aparte (se elige en la tarea del PDF, ver D59). Debe seguir las mismas reglas de diseño que el Word.
+- **Generación del PDF en el navegador** con `pdfmake`, que dibuja el PDF aparte (D59, D94). Sigue las mismas reglas de diseño y las mismas medidas que el Word (D97). Se carga solo al pulsar "Descargar en PDF".
 - **Descarga en ZIP** de los dos documentos con `jszip`.
 - **Sin cookies, sin analítica y sin recursos externos en tiempo de ejecución** (ni CDN ni Google Fonts). Todo va empaquetado dentro de la web, para que funcione durante años sin mantenimiento.
 - **Alojamiento:** GitHub Pages, con publicación automática mediante GitHub Actions al subir cambios a la rama `main`.
@@ -53,7 +53,8 @@ El veterinario sigue unos pasos en la web (ver D57–D60 en `docs/decisiones.md`
 | Vite + TypeScript (sin framework) | Construye la web estática; sin React, para mantenerla simple |
 | `docx` | Fabrica los archivos Word |
 | `jszip` | Empaqueta los documentos en un ZIP |
-| Librería de PDF (se elige en la tarea del PDF) | Dibuja el PDF en el navegador |
+| `pdfmake` | Dibuja el PDF en el navegador y en Node (D94) |
+| Liberation Sans y DejaVu Sans (en `src/generador-pdf/fuentes/`) | Fuentes libres del PDF: Liberation Sans mide como Arial; DejaVu Sans, solo para ☐ y ☒ (D95, D96) |
 | Lector propio (`src/contenido/`) | Lee los textos en markdown de `contenido/` (`marked` se descartó, D18) |
 | LibreOffice (instalado en el PC) | Solo para pruebas: convertir los Word de muestra a PDF y revisarlos visualmente |
 
@@ -160,13 +161,14 @@ Una sola página, sencilla y profesional, en español, organizada en pasos:
 
 ## Pruebas obligatorias antes de dar una tarea por terminada
 
-- `npm run muestras` genera los 4 Word de muestra (2 documentos × 2 versiones) con una clínica ficticia ("Clínica Veterinaria Ejemplo") y el logo de `marca/`, una muestra **con todos los datos vacíos** para comprobar los huecos amarillos y las muestras de la prueba de estrés (D45). Cuando existan, también las muestras con bloques quitados, con datos del paciente y en PDF.
+- `npm run muestras` genera los 4 Word de muestra (2 documentos × 2 versiones) con una clínica ficticia ("Clínica Veterinaria Ejemplo") y el logo de `marca/`, una muestra **con todos los datos vacíos** para comprobar los huecos amarillos y las muestras de la prueba de estrés (D45). También las muestras con bloques quitados y con datos del paciente, y el PDF de cada muestra en `salida/pdf-web/` (D101).
 - Convierte las muestras a PDF con LibreOffice (`soffice --headless --convert-to pdf`), mira las páginas y compáralas con `referencia/`.
 - Prueba de estrés: un nombre de clínica muy largo y un logo apaisado. No debe descuadrarse nada.
 - Ninguna firma debe quedar sola en una página, sin el texto que se firma.
+- Los PDF de `salida/pdf-web/` deben tener las mismas páginas que su Word convertido por LibreOffice.
 
 ## Comandos
 
 - `npm run dev`: abre la web en local para probarla.
 - `npm run build`: construye la web en `dist/`.
-- `npm run muestras`: genera los documentos de prueba en `salida/`.
+- `npm run muestras`: genera los documentos de prueba en `salida/` (Word) y `salida/pdf-web/` (PDF).

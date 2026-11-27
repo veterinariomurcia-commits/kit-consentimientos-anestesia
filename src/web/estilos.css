@@ -272,7 +272,8 @@ legend { padding: 0; }
 /* --- Paso 4 · Descarga --- */
 
 #descarga-errores:focus { outline: none; }
-#descargar-word { margin-top: 4px; }
+/* Los dos botones, uno al lado del otro; en el móvil, uno debajo del otro (ver más abajo). */
+.descargas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
 
 /* --- Pie --- */
 

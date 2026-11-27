@@ -48,9 +48,9 @@ Página en pasos: 1) la clínica (datos obligatorios, logo, color y versión; te
 Vista previa del documento en la propia página, antes de descargar. Es aproximada: un navegador no puede mostrar el Word exactamente como Word.
 **Comprobación:** al cambiar un dato, un bloque o el color, la vista previa cambia. → Probado en un navegador sin ventana: cambian el nombre, el logo, el color, los apartados, los datos del paciente y la versión; dos pestañas; sin deslizar de lado a 390 px (D89–D93).
 
-## T10 · Descarga en PDF [ ]
+## T10 · Descarga en PDF [x]
 Elegir una librería gratuita que dibuje el PDF en el navegador (proponer pros y contras a Sira antes de instalarla) y hacer que siga las reglas de diseño del Word. Embeber una fuente libre que mida como Arial (por ejemplo, Liberation Sans o Arimo), porque Arial no se puede incluir por su licencia. Botón "Descargar en PDF".
-**Comprobación:** los PDF de muestra tienen las mismas páginas que los Word y se parecen a la referencia.
+**Comprobación:** los PDF de muestra tienen las mismas páginas que los Word y se parecen a la referencia. → pdfmake con Liberation Sans (y DejaVu Sans para ☐ y ☒). Los 13 PDF de muestra tienen las mismas páginas que su Word (6 y 3) y se ven prácticamente iguales. Botón «Descargar en PDF (ZIP)» probado en un navegador sin ventana (D94–D101).
 
 ## T11 · Pruebas de compatibilidad [ ]
 Abrir los Word descargados en Word, LibreOffice y Google Docs. En cada uno, cambiar un dato, alargar un texto y sustituir el logo. Comprobar que las firmas siguen con su texto (D56). Abrir los PDF en el móvil y en el ordenador. Guardar capturas en `pruebas/` y corregir lo que se descuadre.

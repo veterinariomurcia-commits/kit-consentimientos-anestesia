@@ -52,6 +52,7 @@ import {
   soloCasillas,
   tieneCaja,
   tieneFirma,
+  textoJuntoACasillas,
   type Medida,
   type Segmento,
 } from './formulario.ts';
@@ -80,18 +81,18 @@ export class ErrorGenerador extends Error {
 
 // --- Medidas de la página (en twips: 567 ≈ 1 cm) ---
 
-const CM = 567;
-const A4 = { ancho: 11906, alto: 16838 };
+export const CM = 567;
+export const A4 = { ancho: 11906, alto: 16838 };
 /**
  * Márgenes de la página, como en la referencia (T5): 1,8 cm a los lados. Arriba, 1,4 cm, para que
  * quepa el encabezado de la página 2 en adelante (a 0,6 cm del borde); abajo, 1,8 cm para el pie.
  */
-const MARGEN = { lateral: Math.round(1.8 * CM), superior: Math.round(1.4 * CM), inferior: Math.round(1.8 * CM) };
+export const MARGEN = { lateral: Math.round(1.8 * CM), superior: Math.round(1.4 * CM), inferior: Math.round(1.8 * CM) };
 /** Ancho útil entre márgenes: 21 cm − 2 × 1,8 cm = 17,4 cm. */
-const ANCHO_UTIL = A4.ancho - 2 * MARGEN.lateral;
+export const ANCHO_UTIL = A4.ancho - 2 * MARGEN.lateral;
 
 /** Tamaño máximo del logo en píxeles de pantalla (96 por pulgada): 5 cm de ancho × 2,4 cm de alto. */
-const LOGO_MAXIMO = { ancho: 189, alto: 91 };
+export const LOGO_MAXIMO = { ancho: 189, alto: 91 };
 
 /** Reparte el ancho útil en columnas según porcentajes. La última columna recoge el redondeo. */
 function anchosEnTwips(porcentajes: number[]): number[] {
@@ -201,10 +202,10 @@ export async function generarWord(doc: Documento, opciones: OpcionesGenerador): 
 // --- Texto ---
 
 /** Tamaño de letra (en puntos) del texto normal, de las tablas y de las notas. */
-const TAMANO_PT = { cuerpo: 9.5, tabla: 8.5, nota: 8 };
+export const TAMANO_PT = { cuerpo: 9.5, tabla: 8.5, nota: 8 };
 
 /** Márgenes izquierdo + derecho de una celda normal (para saber cuánto texto cabe dentro). */
-const MARGEN_LATERAL_CELDA = 220;
+export const MARGEN_LATERAL_CELDA = 220;
 
 /** Dónde se escribe un párrafo normal del cuerpo: todo el ancho de la página. */
 const medidaCuerpo = (ctx: Contexto, sangria = 0): Medida => ({
@@ -221,7 +222,7 @@ const medidaCelda = (ancho: number, tamanoPt = TAMANO_PT.tabla): Medida => ({
 });
 
 /** Nombre de cada elemento tal como se escribe en contenido/, para los mensajes de error. */
-const MARCA: Partial<Record<Tramo['tipo'], string>> = {
+export const MARCA: Partial<Record<Tramo['tipo'], string>> = {
   caja: '[caja]',
   'caja-grande': '[caja-grande]',
   firma: '[firma: …]',
@@ -235,17 +236,13 @@ const MARCA: Partial<Record<Tramo['tipo'], string>> = {
 function lineaARuns(linea: Linea, medida: Medida): ParagraphChild[] {
   return linea.map((t, i): ParagraphChild => {
     switch (t.tipo) {
-      case 'texto': {
-        // El espacio que sigue a una casilla no se parte: "☐ Perro" nunca se separa en dos líneas.
-        const trasCasilla = linea[i - 1]?.tipo === 'casilla' && t.texto.startsWith(' ');
-        let texto = trasCasilla ?' ' + t.texto.slice(1) : t.texto;
-        // Antes de la casilla siguiente, un espacio ancho (1 em) para separar bien las opciones:
-        // "☐ Perro   ☐ Gato". Se puede partir por él, como por un espacio normal.
-        if (linea[i + 1]?.tipo === 'casilla' && texto.endsWith(' ') && texto.trim() !== '') {
-          texto = texto.slice(0, -1) + ' ';
-        }
-        return new TextRun({ text: texto, bold: t.negrita || undefined, italics: t.cursiva || undefined });
-      }
+      case 'texto':
+        // Con los espacios junto a las casillas ajustados (ver textoJuntoACasillas).
+        return new TextRun({
+          text: textoJuntoACasillas(linea, i),
+          bold: t.negrita || undefined,
+          italics: t.cursiva || undefined,
+        });
       case 'dato':
         return new TextRun({
           text: t.texto,
@@ -287,11 +284,11 @@ const marcaPendiente = (vacio: boolean) =>
   vacio ? { style: ESTILO.datoPendiente, highlight: 'yellow' as const } : {};
 
 /** Texto plano de una línea, solo para calcular el ancho de las columnas. */
-const textoPlano = (linea: Linea): string =>
+export const textoPlano = (linea: Linea): string =>
   linea.map((t) => (t.tipo === 'texto' || t.tipo === 'dato' || t.tipo === 'referencia' ? t.texto : '··········')).join('');
 
 /** Separación entre una tabla y el párrafo normal que la sigue (6 pt). Los títulos ya traen la suya. */
-const AIRE_TRAS_TABLA = 120;
+export const AIRE_TRAS_TABLA = 120;
 
 /**
  * Crea un párrafo del cuerpo teniendo en cuenta el estado:
@@ -315,7 +312,7 @@ const BLOQUES_QUE_ARRASTRA_UNA_FIRMA = 3;
 const SE_PUEDE_ATAR: Bloque['tipo'][] = ['parrafo', 'tabla', 'nota', 'letra-pequena'];
 
 /** El bloque lleva un recuadro de firma: una línea con [firma: …] o una tabla con celdas de firma. */
-function llevaFirma(b: Bloque): boolean {
+export function llevaFirma(b: Bloque): boolean {
   switch (b.tipo) {
     case 'firma':
       return true;
@@ -334,7 +331,7 @@ function llevaFirma(b: Bloque): boolean {
  * la tabla de pruebas y "Si rechaza…"). Se para en un título, un salto de página o un recuadro.
  * Así quien firma ve siempre en la misma página lo que está firmando.
  */
-function bloquesAtadosAFirma(bloques: Bloque[]): Set<number> {
+export function bloquesAtadosAFirma(bloques: Bloque[]): Set<number> {
   const atados = new Set<number>();
   bloques.forEach((b, i) => {
     if (!llevaFirma(b)) return;
@@ -375,7 +372,7 @@ const separadorTablas = () =>
   new Paragraph({ style: ESTILO.pie, spacing: { before: 0, after: 0, line: 120, lineRule: LineRuleType.EXACT } });
 
 /** El párrafo se dibuja como una tabla: es solo una caja, o es una línea con un recuadro de firma. */
-const parrafoEsTabla = (linea: Linea) => esSolo(linea, 'caja') || esSolo(linea, 'caja-grande') || tieneFirma(linea);
+export const parrafoEsTabla = (linea: Linea) => esSolo(linea, 'caja') || esSolo(linea, 'caja-grande') || tieneFirma(linea);
 
 /** El bloque empieza con una tabla (para saber cómo aplicar un salto de página pendiente). */
 function empiezaConTabla(b: Bloque): boolean {
@@ -444,7 +441,7 @@ function crearBloque(b: Bloque, ctx: Contexto): (Paragraph | Table)[] {
  * Calcula el ancho de cada columna (en %) según la longitud de su texto más largo,
  * con un mínimo del 10 % para que ninguna columna quede demasiado estrecha.
  */
-function porcentajesColumnas(cabecera: Linea[], filas: Linea[][], primeraColumnaEtiquetas = false): number[] {
+export function porcentajesColumnas(cabecera: Linea[], filas: Linea[][], primeraColumnaEtiquetas = false): number[] {
   const todas = [cabecera, ...filas];
   const columnas = cabecera.length;
   const pesos = Array.from({ length: columnas }, (_, c) =>
@@ -485,7 +482,7 @@ function repartirConMinimos(porcentajes: number[], minimos: number[]): number[] 
   return resultado;
 }
 
-const MARGENES_CELDA = { top: 50, bottom: 50, left: 110, right: 110 };
+export const MARGENES_CELDA = { top: 50, bottom: 50, left: 110, right: 110 };
 
 const fondo = (color: string | undefined) =>
   color ? { type: ShadingType.CLEAR, color: 'auto', fill: color } : undefined;
@@ -733,7 +730,7 @@ function celdasFirma(
 }
 
 /** Si la línea solo es el recuadro de firma, se le añade un hueco vacío al lado (el recuadro ocupa la mitad). */
-const conRelleno = (segmentos: Segmento[]): Segmento[] =>
+export const conRelleno = (segmentos: Segmento[]): Segmento[] =>
   segmentos.length === 1 ? [...segmentos, { tipo: 'texto', linea: [] }] : segmentos;
 
 /**
@@ -757,7 +754,7 @@ function crearLineaFirma(linea: Linea, ctx: Contexto): Table {
 }
 
 /** Margen lateral del recuadro destacado (también es el ancho de sus columnas de relleno). */
-const MARGEN_DESTACADO = 200;
+export const MARGEN_DESTACADO = 200;
 
 /**
  * Recuadro destacado: una tabla con borde del color de la clínica y fondo suave.

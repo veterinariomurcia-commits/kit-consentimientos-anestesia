@@ -361,7 +361,7 @@ Por qué: evitar errores de clic en preguntas que solo admiten una respuesta.
 
 **Pendiente:**
 - ~~T9: la vista previa irá en el paso 4, encima del botón de descarga.~~ Hecho (D90).
-- T10: el botón "Descargar en PDF" irá junto al de Word.
+- ~~T10: el botón "Descargar en PDF" irá junto al de Word.~~ Hecho (D98).
 - T12: al publicar en GitHub Pages, comprobar la ruta base de Vite (la web irá en una subcarpeta de la dirección).
 
 ## Decisiones de la tarea T9 · Vista previa (27/11/2026)
@@ -377,3 +377,47 @@ Por qué: evitar errores de clic en preguntas que solo admiten una respuesta.
 **D93 · Se actualiza sola, 0,2 segundos después del último cambio.** Escucha los mismos avisos de cambio que ya usan los pasos (`alCambiar`): datos y logo de la clínica, color, versión, apartados y datos del paciente. Espera a que se deje de escribir para no ir a tirones. Los datos del paciente solo se dibujan en la pantalla: siguen sin guardarse en ningún sitio (D60). Para que la vista previa y el Word salgan siempre de lo mismo, la preparación del documento (datos de la clínica, del paciente y apartados elegidos) está ahora en una sola función, `prepararDocumento` (`src/web/paso-descarga.ts`), que usan las dos.
 
 **Comprobado en T9** con Edge sin ventana, manejado desde un script de prueba temporal (no se queda en el proyecto): sin datos salen los huecos amarillos; al escribir el nombre, subir el logo, cambiar a granate, quitar el apartado 3 (los títulos pasan de 8 a 7 y sale «[apartado quitado]» en amarillo), escribir un dato del paciente y marcar una casilla (☒), y pasar a la versión cálida («tutor/a»), la vista previa cambia; la pestaña «Información» funciona; a 390 px de ancho no hay que deslizar de lado; sin errores en la consola. `npm run build` y `npm run muestras` (13 Word) sin errores; los Word no cambian.
+
+## Decisiones de la tarea T10 · Descarga en PDF (27/11/2026)
+
+**D94 · Librería del PDF: pdfmake 0.3.14 (elegida por Sira entre pdfmake, pdf-lib y jsPDF).** Funciona como `docx`: se le describe el documento por piezas (párrafos, tablas, columnas, bloques que no se parten) y ella corta las páginas. pdf-lib y jsPDF obligaban a colocar cada línea a mano. Es gratuita (licencia MIT) y funciona igual en el navegador y en Node. Se fija la versión exacta, como las demás. La 0.3.15 tenía solo 7 días; la 0.3.14, casi 3 semanas.
+Contrapartida aceptada: pesa unos 770 KB, más las fuentes (D96). Por eso no se carga al abrir la web, sino la primera vez que se pulsa "Descargar en PDF" (D98).
+
+**D95 · Fuente del PDF: Liberation Sans (en lugar de Arimo).** Mide exactamente como Arial y tiene licencia libre (OFL). Arimo, que es la misma letra, solo se publica ya como fuente "variable" (todos los grosores en un solo archivo), y pdfmake no la maneja bien. Se descargó una sola vez de su página oficial (versión 2.1.5) y está en `src/generador-pdf/fuentes/` con su licencia (`LICENCIA-OFL.txt`). La web la sirve ella misma, nunca de fuera (D11).
+
+**D96 · Las casillas ☐ y ☒ del PDF van en DejaVu Sans (cambio respecto a lo propuesto).** Se había propuesto dibujarlas como un cuadradito, pero pdfmake no puede meter un dibujo en medio de una línea de texto ("☐ Perro ☐ Gato"). Liberation Sans no tiene esos símbolos. DejaVu Sans (licencia libre, versión 2.37, con `LICENCIA-DEJAVU.txt`) sí los tiene, y miden lo mismo que en el Word (0,9 de ancho). El PDF solo guarda dentro esos dos símbolos, no la fuente entera. Coste: unos 750 KB más, que solo se descargan al pulsar el botón del PDF.
+
+**D97 · El PDF sale del mismo recorrido y de las mismas medidas que el Word.** `src/generador-pdf/generador-pdf.ts` recorre el mismo documento que el generador del Word e importa sus medidas y reglas: márgenes, tamaños, la regla de las firmas (D56) y el reparto de columnas. Los espacios entre párrafos pasaron a una tabla compartida (`ESPACIADO`, en `estilos.ts`), y el texto de los huecos y los espacios junto a las casillas, a dos funciones compartidas (`textoHueco` y `textoJuntoACasillas`, en `formulario.ts`). **Los 13 Word salen idénticos a los de antes** (comprobado archivo por archivo).
+Para que el PDF corte las páginas donde el Word, se imita lo que se ve al abrir el Word:
+- Interlineado: una línea sencilla de Arial en Word mide 1,15 veces la letra. pdfmake mide 1,117 con Liberation Sans, así que se corrige.
+- El alto mínimo de las filas no incluye el relleno de arriba y abajo de la celda: se suma por fuera.
+- Entre dos párrafos cuenta el mayor de los dos espacios (el de debajo de uno y el de encima del siguiente), no la suma.
+- Arriba de una página que empieza con un salto, el título no lleva espacio encima.
+- Las líneas con casillas son algo más altas, porque la fuente de las casillas del Word (Segoe UI Symbol) tiene más alto de línea.
+- Cada párrafo va entero en una página (como el "control de líneas viudas" de Word), y cada título va con lo que le sigue.
+- Cada firma va en un bloque que no se parte, junto con el texto que se firma (D56).
+Límite conocido: pdfmake no sabe partir un bloque así si ocupa más de una página. Los de estos textos son cortos (como mucho, unos 4 bloques).
+
+**D98 · Botón "Descargar en PDF (ZIP)" junto al de Word, con un ZIP igual que el del Word (aprobado por Sira).** El ZIP lleva `consentimiento-anestesia.pdf`, `informacion-anestesia.pdf` y un `LEEME.txt` adaptado: el PDF no se puede corregir, así que para completar un dato amarillo hay que volver a la web, y para cambiar textos, usar el Word. El ZIP se llama `kit-anestesia-<clínica>-pdf.zip`, para no pisar el del Word. En el ordenador, los dos botones van uno al lado del otro; en el móvil, uno debajo del otro. Mientras se prepara una descarga, los dos esperan. La primera vez sale "La primera vez tarda unos segundos más", porque se cargan pdfmake y las fuentes. Si falla la carga, se puede volver a intentar.
+
+**D99 · Textos de la web revisados (D88).** La presentación dice ahora, como aprobó Sira: "Podrás descargar los 2 documentos (información para el cliente y el consentimiento informado) en Word, para seguir editándolos en tu PC, o en PDF, listos para imprimir." También se cambiaron otras tres frases que solo hablaban del Word: la descripción de la página para los buscadores, la ayuda del paso 4 y la nota de la vista previa ("Los documentos que descargues son los que valen", antes "El Word que descargues es el que vale").
+
+**D100 · Cada PDF lleva una "huella" propia en sus fuentes.** En las pruebas, el visor de PDF de Windows, al abrir varios PDF seguidos, revolvía las negritas de algunos. Reconoce cada fuente por una huella interna (el campo `checkSumAdjustment`), y pdfmake copiaba siempre la misma del archivo original. Ahora cada documento cambia esa huella y el nombre interno de sus fuentes ("BZZZZZ+…") según su propio contenido. Así no se confunden aunque se abran a la vez el consentimiento y la información del ZIP. No cambia ninguna letra (`src/generador-pdf/fuentes.ts`).
+
+**D101 · `npm run muestras` fabrica también los 13 PDF, en `salida/pdf-web/`.** Van aparte de `salida/pdf/`, donde están los Word convertidos por LibreOffice, para poder comparar los dos. pdfmake se usa en Node con sus fuentes leídas del disco, y no puede leer nada de internet ni del disco por su cuenta.
+
+**Comprobado en T10:**
+- Los 13 PDF de muestra tienen **las mismas páginas que su Word** pasado a PDF por LibreOffice: consentimiento 6 e información 3, también en la prueba de estrés (nombre largo y logo apaisado), con los datos vacíos y con el paciente; con apartados quitados, 4, 6 y 2, como el Word.
+- Página a página se ven prácticamente iguales que el Word, y cada firma va en la misma página que su texto.
+- En Edge sin ventana, con un script de prueba temporal que no se queda en el proyecto:
+  - al abrir la web no se carga pdfmake;
+  - sin datos sale la lista de lo que falta;
+  - con datos, logo y un dato del paciente, el ZIP de PDF trae 2 PDF (6 y 3 páginas) y el LEEME del PDF;
+  - el Word sigue funcionando;
+  - ninguna petición sale de la propia web;
+  - a 390 px de ancho no hay que deslizar de lado y los botones quedan uno debajo del otro;
+  - no hay errores en la consola.
+- `npm run build` y `npm run muestras` (13 Word y 13 PDF) sin errores. `npm run build` avisa de que el archivo de pdfmake pasa de 500 KB: es esperado, porque solo se carga al pulsar el botón del PDF.
+
+**Pendiente:**
+- T11: abrir los PDF en el móvil y en el ordenador (Adobe, Edge, Chrome, el visor del móvil) y abrir los dos PDF del ZIP a la vez (D100).
